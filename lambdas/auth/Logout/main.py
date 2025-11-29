@@ -9,7 +9,7 @@ def lambda_handler(event, _context):
             return
         elif http_method == 'POST':
             print("Handling logout request")
-            cookie_attributes = f'authToken=; HttpOnly; Secure; SameSite=None; Max-Age=172800; Path=/'
+            cookie_attributes = f'refresh_token=; HttpOnly; Secure; SameSite=None; Max-Age=172800; Path=/'
             return {
                 'statusCode': 200,
                 'headers': {'Set-Cookie': cookie_attributes},
