@@ -212,7 +212,6 @@ def verify_auth(event):
     """
     refresh_token = get_auth_token(event)
     user_id, refresh_token = validate_refresh_token(refresh_token)
-    securely_store_server_tokens(refresh_token, user_id)
     
     if not user_id:
         return not_authenticated_response()
