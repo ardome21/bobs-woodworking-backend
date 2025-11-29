@@ -26,7 +26,8 @@ def check_password(password: str, stored_hash: str) -> bool:
         print(f"Password verification error: {e}")
         raise e
     
-def securely_store_server_tokens(refresh_token, csrf_token, user_id):
+def securely_store_server_tokens(refresh_token, user_id):
+    """Store hashed refresh token with TTL (time-to-live) in DynamoDB"""
     try:
         hashed_refresh = hashlib.sha256(refresh_token.encode()).hexdigest()
         ttl = int(time.time()) + 7 * 24 * 60 * 60
@@ -34,7 +35,6 @@ def securely_store_server_tokens(refresh_token, csrf_token, user_id):
             Item={
                 'user_id': str(user_id),
                 'refresh_token': hashed_refresh,
-                'csrf_token': csrf_token,
                 'expires_at': ttl
             }
         )
@@ -42,6 +42,18 @@ def securely_store_server_tokens(refresh_token, csrf_token, user_id):
     except Exception as e:
         print(f"Failed to securely store server tokens for user {user_id}: {e}")
         raise e
+    
+def create_access_token(email, user_id):
+    """Create JWT access token"""
+    payload = {
+        'email': email,
+        'user_id': user_id,
+        'iat': datetime.now(timezone.utc),
+        'exp': datetime.now(timezone.utc) + timedelta(minutes=30)
+    }
+    jwt_secret = boto3.client('ssm').get_parameter(Name='/bw3/jwt-secret-key', WithDecryption=True)['Parameter']['Value']
+    access_token = jwt.encode(payload, jwt_secret, algorithm='HS256')
+    return access_token
 
 def login(event):
     """Login user"""
@@ -101,48 +113,27 @@ def login(event):
                 })
             }
         user_id = user['user_id']
-        # Create Access Token
-        payload = {
-            'email': email,
-            'user_id': user_id,
-            'iat': datetime.now(timezone.utc),
-            'exp': datetime.now(timezone.utc) + timedelta(minutes=30)
-        }
-        jwt_secret = boto3.client('ssm').get_parameter(Name='/bw3/jwt-secret-key', WithDecryption=True)['Parameter']['Value']
-        access_token = jwt.encode(payload, jwt_secret, algorithm='HS256')
-        print(f"Access token: {access_token}")
-
-        # Create/Update Refesh Token
+        access_token = create_access_token(email, user_id)
         refresh_token = base64.urlsafe_b64encode(
             boto3.client('kms').generate_random(NumberOfBytes=32)['Plaintext']
         ).decode('utf-8')
-        print(f"Refresh token: {refresh_token}")
+        
+        securely_store_server_tokens(refresh_token, user_id)
         refresh_cookie = f'refresh_token={refresh_token}; HttpOnly; Secure; SameSite=None; Max-Age=604800; Path=/'
-        # Create CRSF
-        csrf_token = base64.urlsafe_b64encode(
-            boto3.client('kms').generate_random(
-            NumberOfBytes=32)['Plaintext']
-        ).decode('utf-8')
-        print(f"CSRF token: {csrf_token}")
-        csrf_cookie = f'csrf_token={csrf_token}; Secure; SameSite=None; Path=/'
-        # Save tokens in DB
-        securely_store_server_tokens(refresh_token, csrf_token, user_id)
-
 
         userProfile = {
             'email': email,
-            'user_id': user['user_id'],
+            'user_id': user_id,
             'first_name': user['first_name'],
             'last_name': user['last_name']
         }
         print(f"User profile: {userProfile}")
         print(f"Access token: {access_token}")
         print(f"Refresh token: {refresh_token}")
-        print(f"CSRF token: {csrf_token}")
         return {
             'statusCode': 200,
             'headers': {
-                'Set-Cookie': f"{refresh_cookie}, {csrf_cookie}"
+                'Set-Cookie': f"{refresh_cookie}"
             },
             'body': json.dumps({
                 'message': 'Login successful',
@@ -163,15 +154,12 @@ def login(event):
 def get_auth_token(event):
     try:
         refresh_token = None
-        csrf_token = None
         cookies = event.get('cookies', [])
         for cookie in cookies:
             print(f"Processing cookie: {cookie}")
             if cookie.startswith('refresh_token='):
                 refresh_token = cookie.split('=', 1)[1]
-            if cookie.startswith('csrf_token='):
-                csrf_token = cookie.split('=', 1)[1]
-        return refresh_token, csrf_token
+        return refresh_token
     except Exception as e:
         print(f"Error retrieving auth tokens from cookies: {e}")
         raise RuntimeError("Failed to retrieve auth tokens from cookies") from e
@@ -190,108 +178,85 @@ def not_authenticated_response(message='Not authenticated'):
         }),
     }
 
-
-def verify_auth(event):
-    token = get_auth_token(event)
-    if not token:
-        return not_authenticated_response()
+def validate_refresh_token(refresh_token):
+    """
+        Check if the refresh token is valid,
+        Return user_id and new refresh token if valid
+    """
     try:
-        jwt_secret = boto3.client('ssm').get_parameter(Name='/bw3/jwt-secret-key', WithDecryption=True)['Parameter']['Value']
-        payload = jwt.decode(token, jwt_secret, algorithms=['HS256'])
-    except jwt.ExpiredSignatureError:
-        return not_authenticated_response('Token expired')
-    except jwt.InvalidTokenError:
-        return not_authenticated_response('Invalid token')
-    response = userTable.get_item(Key={'email': payload.get("email")})
+        hashed_refresh = hashlib.sha256(refresh_token.encode()).hexdigest()
+        response = tokenTable.scan(
+            FilterExpression=Key('refresh_token').eq(hashed_refresh)
+        )
+        if not response['Items']:
+            print("No matching refresh token found")
+            return None, None
+        if len(response['Items']) > 1:
+            print("Multiple matching refresh tokens found")
+            return None, None
+        token_item = response['Items'][0]
+        user_id = token_item['user_id']
+        return user_id, refresh_token
+    except Exception as e:
+        print(f"Error validating and refreshing tokens: {e}")
+        raise RuntimeError(f"Failed to validate and refresh tokens: {e}") from e
+    
+def verify_auth(event):
+    """
+    Verify user authentication status
+    Logic for when user opens app and we need to check if they are logged in
+    1. Get refresh token from cookies
+    2. Validate refresh token
+    3. If valid, generate new access token and refresh token
+    4. Return user data and tokens
+    """
+    refresh_token = get_auth_token(event)
+    user_id, refresh_token = validate_refresh_token(refresh_token)
+    securely_store_server_tokens(refresh_token, user_id)
+    
+    if not user_id:
+        return not_authenticated_response()
+    if not refresh_token:
+        return not_authenticated_response('Token validation failed')
+    response = userTable.query(
+        KeyConditionExpression=Key('user_id').eq(user_id)
+    )
 
-    if 'Item' not in response:
+    if not response['Items']:
         return not_authenticated_response('User not found')
 
-    user_data = {
-        "email": response['Item'].get("email"),
-        "first_name": response['Item'].get("first_name"),
-        "last_name": response['Item'].get("last_name")
+    if len(response['Items']) > 1:
+        return not_authenticated_response('Multiple users found')
+    user = response['Items'][0]
+    email = user.get('email')
+
+    access_token = create_access_token(email, user_id)
+    refresh_token = base64.urlsafe_b64encode(
+        boto3.client('kms').generate_random(NumberOfBytes=32)['Plaintext']
+    ).decode('utf-8')
+        
+    securely_store_server_tokens(refresh_token, user_id)
+    refresh_cookie = f'refresh_token={refresh_token}; HttpOnly; Secure; SameSite=None; Max-Age=604800; Path=/'
+
+    user_profile = {
+        "email": user.get("email"),
+        "user_id": user.get("user_id"),
+        "first_name": user.get("first_name"),
+        "last_name": user.get("last_name")
     }
-
-    is_development = True
-    if is_development:
-        cookie_attributes = f'authToken={token}; HttpOnly; Secure; SameSite=None; Max-Age=172800; Path=/'
-    else:
-        cookie_attributes = f'authToken={token}; HttpOnly; Secure; SameSite=Strict; Max-Age=172800; Path=/'
-
-
     return {
         'statusCode': 200,
         'headers': {
-            'Set-Cookie': cookie_attributes
+            'Set-Cookie': f"{refresh_cookie}"
         },
         'body': json.dumps({
-            'success': 'true',
-            'userData': user_data,
-            'message': 'Authenticated'
+            'success': True,
+            'message': 'Authenticated',
+            'userData': user_profile,
+            'token':    access_token,
+            'expires_in': 1800
         })
     }
-
-# OLD CODE BELOW
-# def verify_auth(event):
-
-#     # Get Refresh and CSRF token
-#     print(f"Event cookies: {event.get('cookies',[])}")
-#     refresh_token, csrf_token = get_auth_token(event)
-#     # Verify correctness of tokens
-#     return {
-#         'status': 202,
-#         'message': 'stopped early'
-#     }
-#     user_id, refresh_token, csrf_token = validate_and_refresh_tokens(
-#         refresh_token, csrf_token)
-    
-#     if not user_id:
-#         return not_authenticated_response()
-#     response = userTable.query(
-#         KeyConditionExpression=Key('user_id').eq(user_id)
-#     )
-
-#     if not response['Items']:
-#         return not_authenticated_response('User not found')
-
-#     if len(response['Items']) > 1:
-#         return not_authenticated_response('Multiple users found')
-#     user = response['Items'][0]
-
-#     user_data = {
-#         "email": user.get("email"),
-#         "user_id": user.get("user_id"),
-#         "first_name": user.get("first_name"),
-#         "last_name": user.get("last_name")
-#     }
-
-#     payload = {
-#         'email': user.get('email'),
-#         'user_id': user_id,
-#         'iat': datetime.now(timezone.utc),
-#         'exp': datetime.now(timezone.utc) + timedelta(minutes=30)
-#     }
-#     jwt_secret = boto3.client('ssm').get_parameter(Name='/bw3/jwt-secret-key', WithDecryption=True)['Parameter']['Value']
-#     access_token = jwt.encode(payload, jwt_secret, algorithm='HS256')
-#     print(f"Access token: {access_token}")
-    
-#     refresh_cookie = f'refresh_token={refresh_token}; HttpOnly; Secure; SameSite=None; Max-Age=604800; Path=/'
-#     csrf_cookie = f'csrf_token={csrf_token}; Secure; SameSite=None; Path=/'
-
-#     return {
-#         'statusCode': 200,
-#         'headers': {
-#             'Set-Cookie': f"{refresh_cookie}, {csrf_cookie}"
-#         },
-#         'body': json.dumps({
-#             'success': True,
-#             'message': 'Authenticated',
-#             'userData': user_data,
-#             'token':    access_token,
-#             'expires_in': 172800
-#         })
-#     }
 
 
 def lambda_handler(event, _context):
