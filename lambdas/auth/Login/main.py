@@ -185,64 +185,108 @@ def not_authenticated_response(message='Not authenticated'):
         }),
     }
 
+
 def verify_auth(event):
-
-    # Get Refresh and CSRF token
-    refresh_token, csrf_token = get_auth_token(event)
-    # Verify correctness of tokens
-    return {
-        'status': 202,
-        'message': 'stopped early'
-    }
-    user_id, refresh_token, csrf_token = validate_and_refresh_tokens(
-        refresh_token, csrf_token)
-    
-    if not user_id:
+    token = get_auth_token(event)
+    if not token:
         return not_authenticated_response()
-    response = userTable.query(
-        KeyConditionExpression=Key('user_id').eq(user_id)
-    )
+    try:
+        jwt_secret = boto3.client('ssm').get_parameter(Name='/budget/jwt-secret-key', WithDecryption=True)['Parameter']['Value']
+        payload = jwt.decode(token, jwt_secret, algorithms=['HS256'])
+    except jwt.ExpiredSignatureError:
+        return not_authenticated_response('Token expired')
+    except jwt.InvalidTokenError:
+        return not_authenticated_response('Invalid token')
+    response = userTable.get_item(Key={'email': payload.get("email")})
 
-    if not response['Items']:
+    if 'Item' not in response:
         return not_authenticated_response('User not found')
 
-    if len(response['Items']) > 1:
-        return not_authenticated_response('Multiple users found')
-    user = response['Items'][0]
-
     user_data = {
-        "email": user.get("email"),
-        "user_id": user.get("user_id"),
-        "first_name": user.get("first_name"),
-        "last_name": user.get("last_name")
+        "email": response['Item'].get("email"),
+        "first_name": response['Item'].get("first_name"),
+        "last_name": response['Item'].get("last_name")
     }
 
-    payload = {
-        'email': user.get('email'),
-        'user_id': user_id,
-        'iat': datetime.now(timezone.utc),
-        'exp': datetime.now(timezone.utc) + timedelta(minutes=30)
-    }
-    jwt_secret = boto3.client('ssm').get_parameter(Name='/bw3/jwt-secret-key', WithDecryption=True)['Parameter']['Value']
-    access_token = jwt.encode(payload, jwt_secret, algorithm='HS256')
-    print(f"Access token: {access_token}")
-    
-    refresh_cookie = f'refresh_token={refresh_token}; HttpOnly; Secure; SameSite=None; Max-Age=604800; Path=/'
-    csrf_cookie = f'csrf_token={csrf_token}; Secure; SameSite=None; Path=/'
+    is_development = True
+    if is_development:
+        cookie_attributes = f'authToken={token}; HttpOnly; Secure; SameSite=None; Max-Age=172800; Path=/'
+    else:
+        cookie_attributes = f'authToken={token}; HttpOnly; Secure; SameSite=Strict; Max-Age=172800; Path=/'
+
 
     return {
         'statusCode': 200,
         'headers': {
-            'Set-Cookie': f"{refresh_cookie}, {csrf_cookie}"
+            'Set-Cookie': cookie_attributes
         },
         'body': json.dumps({
-            'success': True,
-            'message': 'Authenticated',
+            'success': 'true',
             'userData': user_data,
-            'token':    access_token,
-            'expires_in': 172800
+            'message': 'Authenticated'
         })
     }
+
+# OLD CODE BELOW
+# def verify_auth(event):
+
+#     # Get Refresh and CSRF token
+#     print(f"Event cookies: {event.get('cookies',[])}")
+#     refresh_token, csrf_token = get_auth_token(event)
+#     # Verify correctness of tokens
+#     return {
+#         'status': 202,
+#         'message': 'stopped early'
+#     }
+#     user_id, refresh_token, csrf_token = validate_and_refresh_tokens(
+#         refresh_token, csrf_token)
+    
+#     if not user_id:
+#         return not_authenticated_response()
+#     response = userTable.query(
+#         KeyConditionExpression=Key('user_id').eq(user_id)
+#     )
+
+#     if not response['Items']:
+#         return not_authenticated_response('User not found')
+
+#     if len(response['Items']) > 1:
+#         return not_authenticated_response('Multiple users found')
+#     user = response['Items'][0]
+
+#     user_data = {
+#         "email": user.get("email"),
+#         "user_id": user.get("user_id"),
+#         "first_name": user.get("first_name"),
+#         "last_name": user.get("last_name")
+#     }
+
+#     payload = {
+#         'email': user.get('email'),
+#         'user_id': user_id,
+#         'iat': datetime.now(timezone.utc),
+#         'exp': datetime.now(timezone.utc) + timedelta(minutes=30)
+#     }
+#     jwt_secret = boto3.client('ssm').get_parameter(Name='/bw3/jwt-secret-key', WithDecryption=True)['Parameter']['Value']
+#     access_token = jwt.encode(payload, jwt_secret, algorithm='HS256')
+#     print(f"Access token: {access_token}")
+    
+#     refresh_cookie = f'refresh_token={refresh_token}; HttpOnly; Secure; SameSite=None; Max-Age=604800; Path=/'
+#     csrf_cookie = f'csrf_token={csrf_token}; Secure; SameSite=None; Path=/'
+
+#     return {
+#         'statusCode': 200,
+#         'headers': {
+#             'Set-Cookie': f"{refresh_cookie}, {csrf_cookie}"
+#         },
+#         'body': json.dumps({
+#             'success': True,
+#             'message': 'Authenticated',
+#             'userData': user_data,
+#             'token':    access_token,
+#             'expires_in': 172800
+#         })
+#     }
 
 
 def lambda_handler(event, _context):

@@ -131,6 +131,14 @@ def lambda_handler(event, _context):
         if http_method == 'OPTIONS':
             print("Handling OPTIONS preflight request")
             return
+        if http_method != 'POST':
+            print(f"Unsupported HTTP method: {http_method}")
+            return {
+                'statusCode': 405,
+                'body': json.dumps({
+                    'error': f'Method {http_method} Not Allowed'
+                })
+            }
         print("Handling POST request")
 
         if isinstance(event['body'], str):
