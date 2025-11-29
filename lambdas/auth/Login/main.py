@@ -138,7 +138,7 @@ def login(event):
             'body': json.dumps({
                 'message': 'Login successful',
                 'user': userProfile,
-                'token': access_token,
+                'access_token': access_token,
                 "expires_in": 1800
                 })
             }       
@@ -251,9 +251,9 @@ def verify_auth(event):
         },
         'body': json.dumps({
             'success': True,
-            'message': 'Authenticated',
-            'userData': user_profile,
-            'token':    access_token,
+            'message': 'User already authenticated',
+            'user': user_profile,
+            'access_token':    access_token,
             'expires_in': 1800
         })
     }
