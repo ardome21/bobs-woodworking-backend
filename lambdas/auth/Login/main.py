@@ -161,15 +161,19 @@ def login(event):
         }
     
 def get_auth_token(event):
-    refresh_token: str
-    csrf_token: str
-    cookies = event.get('cookies', [])
-    for cookie in cookies:
-        if cookie.startswith('refresh_token='):
-            refresh_token = cookie.split('=', 1)[1]
-        if cookie.startswith('csrf_token='):
-            csrf_token = cookie.split('=', 1)[1]
-    return refresh_token, csrf_token
+    try:
+        refresh_token: str
+        csrf_token: str
+        cookies = event.get('cookies', [])
+        for cookie in cookies:
+            if cookie.startswith('refresh_token='):
+                refresh_token = cookie.split('=', 1)[1]
+            if cookie.startswith('csrf_token='):
+                csrf_token = cookie.split('=', 1)[1]
+        return refresh_token, csrf_token
+    except Exception as e:
+        print(f"Error retrieving auth tokens from cookies: {e}")
+        raise RuntimeError("Failed to retrieve auth tokens from cookies") from e
 
 def not_authenticated_response(message='Not authenticated'):
     refresh_cookie = 'refresh_token=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=None'
@@ -191,7 +195,7 @@ def verify_auth(event):
     if not token:
         return not_authenticated_response()
     try:
-        jwt_secret = boto3.client('ssm').get_parameter(Name='/budget/jwt-secret-key', WithDecryption=True)['Parameter']['Value']
+        jwt_secret = boto3.client('ssm').get_parameter(Name='/bw3/jwt-secret-key', WithDecryption=True)['Parameter']['Value']
         payload = jwt.decode(token, jwt_secret, algorithms=['HS256'])
     except jwt.ExpiredSignatureError:
         return not_authenticated_response('Token expired')
