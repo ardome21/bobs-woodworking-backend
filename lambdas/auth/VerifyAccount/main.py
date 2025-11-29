@@ -5,6 +5,7 @@ should take user to confirmation page where they can login.
 """
 import boto3
 import json
+from boto3.dynamodb.conditions import Key
 
 def lambda_handler(event, _context):
     try:
@@ -13,45 +14,52 @@ def lambda_handler(event, _context):
             print("No query params")
             return {
                 'statusCode': 400,
-                'headers': {'Content-Type': 'text/html'},
-                'body': "Missing confirmation parameters"
+                'body': json.dumps({'error': 'Missing confirmation parameters'})
             }
-        email = query_params.get('email')
+        user_id = query_params.get('userid')
         token = query_params.get('token')
-        print(f"Email: {email}")
-        if not email or not token:
-            print("Missing email or token")
+        if not user_id or not token:
+            print("Missing user_id or token")
             return {
                 'statusCode': 400,
-                'headers': {'Content-Type': 'text/html'},
-                'body': "Invalid confirmation link"
+                'body': json.dumps({'error': 'Invalid confirmation link'})
             }
         dynamodb = boto3.resource('dynamodb')
-        table = dynamodb.Table('users-dev')
-        response = table.get_item(
-            Key={
-                'email': email
+        table = dynamodb.Table('bw3-users-dev')
+        response = table.query(
+            KeyConditionExpression=Key('user_id').eq(user_id)
+            )
+        print(f"Response: {response}")
+        user = response['Items']
+        if not user:
+            print("User not found")
+            return {
+                'statusCode': 400,
+                'body': json.dumps({'error': 'Invalid confirmation link'})
             }
-        )
-        user = response['Item']
-        if response['Item']['email_verified'] == True:
+        if len(user) > 1:
+            print("Multiple users found")
+            return {
+                'statusCode': 400,
+                'body': json.dumps({'error': 'Invalid confirmation link'})
+            }
+        if user[0]['email_verified'] == True:
             return {
                 'statusCode': 200,
                 'headers': {
-                    'Location': f'http://localhost:4200/confirmation-success?email={email}'
+                    'Location': f'http://localhost:4200/confirmation-success?userid={user_id}'
                 },
-                'body': json.dumps('Email already confirmed')
+                'body': json.dumps({'message': 'Email already confirmed'})
             }
-        if user['verification_token'] != token:
+        if user[0]['verification_token'] != token:
             print("Invalid token")
             return {
                 'statusCode': 400,
-                'headers': {'Content-Type': 'text/html'},
-                'body': "Invalid Token"
+                'body': json.dumps({'error': 'Invalid Token'})
             }
         table.update_item(
             Key={
-                'email': email
+                'user_id': user[0]['user_id']
             },
             UpdateExpression='SET email_verified = :val1, verification_token = :val2',
             ExpressionAttributeValues={
@@ -63,14 +71,12 @@ def lambda_handler(event, _context):
         return {
             'statusCode': 302,
             'headers': {
-                'Location': f'http://localhost:4200/confirmation-success?email={email}'
+                'Location': f'http://localhost:4200/confirmation-success?userid={user_id}'
             }
         }
     except Exception as e:
         print(f"Error verifying email: {e}")
         return {
             'statusCode': 500,
-            'headers': {'Content-Type': 'text/html'},
-            'body': "Internal server error",
-            'error': str(e)
+            'body': json.dumps({'error': f"Internal server error: {e}"})
         }

@@ -4,7 +4,7 @@ resource "aws_apigatewayv2_api" "this" {
   description   = "Shared API Gateway"
 
   cors_configuration {
-    allow_origins     = ["http://localhost:4200"]
+    allow_origins     = ["http://localhost:4200", "https://d2udkvijondfzk.cloudfront.net"]
     allow_credentials = true
     allow_methods     = ["POST", "GET", "OPTIONS"]
     allow_headers     = ["content-type", "authorization"]

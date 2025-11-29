@@ -1,4 +1,4 @@
-module "auth_api" {
+module "bw3_api" {
   source   = "./impl/apigateway"
   api_name = "auth-api-dev"
 
@@ -50,15 +50,7 @@ module "auth_api" {
       path              = "/sign-up"
       lambda_name       = module.create_account_lambda.function_name
       lambda_invoke_arn = module.create_account_lambda.invoke_arn
-    }
-  ]
-}
-
-module "plaid_api" {
-  source   = "./impl/apigateway"
-  api_name = "plaid-api-dev"
-
-  routes = [
+    },
     {
       method            = "POST"
       path              = "/get-plaid-link"
@@ -82,6 +74,18 @@ module "plaid_api" {
       path              = "/exchange-plaid-token"
       lambda_name       = module.plaid_exchange_token_lambda.function_name
       lambda_invoke_arn = module.plaid_exchange_token_lambda.invoke_arn
+    },
+    {
+      method            = "POST"
+      path              = "/get-account-details"
+      lambda_name       = module.plaid_get_account_details_lambda.function_name
+      lambda_invoke_arn = module.plaid_get_account_details_lambda.invoke_arn
+    },
+    {
+      method            = "OPTIONS"
+      path              = "/get-account-details"
+      lambda_name       = module.plaid_get_account_details_lambda.function_name
+      lambda_invoke_arn = module.plaid_get_account_details_lambda.invoke_arn
     },
   ]
 }

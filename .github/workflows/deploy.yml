@@ -1,12 +1,12 @@
-name: Deploy Codebase to AWS using Terraform
+name: "Deploy development code to AWS with Terraform"
 on:
   push:
     branches:
-      - main
+      - develop
 
 jobs:
   terraform:
-    name: 'Terraform Apply'
+    name: "Terraform Apply"
     runs-on: ubuntu-latest
 
     defaults:

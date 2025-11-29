@@ -1,14 +1,13 @@
-# Budget Application (AWS Implementation)
+# Bob's Woodworking Application (AWS Implementation)
 
-This project code required to deploy and run a budget application
+This project code required to deploy and run a Bob's Woodworking application
 supported by AWS.
 
 ## Quick Start
 
 ## Requirements outside of this Repository
+
 1. Add AWS Credentials to GitHub
 2. Create Terraform State Bucket
 3. Create Terrafrom State Lock Table
 4. Create App Role + Policies
-
-
