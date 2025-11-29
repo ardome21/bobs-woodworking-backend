@@ -13,8 +13,8 @@ class BadRequestException(Exception):
     pass
 
 dynamodb = boto3.resource('dynamodb')
-userTable = dynamodb.Table('users-dev')
-accessTable = dynamodb.Table('plaid-connections-dev')
+userTable = dynamodb.Table('bw3-users-dev')
+accessTable = dynamodb.Table('bw3-plaid-connections-dev')
 
 def get_auth_token(event):
     cookies = event.get('cookies', [])
@@ -29,7 +29,7 @@ def verify_auth(event):
         print("No token found")
         raise Exception("No token found")
     try:
-        jwt_secret = boto3.client('ssm').get_parameter(Name='/budget/jwt-secret-key', WithDecryption=True)['Parameter']['Value']
+        jwt_secret = boto3.client('ssm').get_parameter(Name='/bw3/jwt-secret-key', WithDecryption=True)['Parameter']['Value']
         payload = jwt.decode(token, jwt_secret, algorithms=['HS256'])
     except jwt.ExpiredSignatureError as e:
         print(f"Expire Signature error: {e}")
@@ -63,7 +63,7 @@ def get_access_token(user_id, institution):
         raise BadRequestException(f"Multiple tokens found for {user_id} and {institution}")
     item = response['Items'][0]
     encrypted_access_token = item['access_token']
-    jwt_secret = boto3.client('ssm').get_parameter(Name='/budget/jwt-secret-key', WithDecryption=True)['Parameter']['Value']
+    jwt_secret = boto3.client('ssm').get_parameter(Name='/bw3/jwt-secret-key', WithDecryption=True)['Parameter']['Value']
     decrypted_access_token = jwt.decode(encrypted_access_token, jwt_secret, algorithms=['HS256'])
     return decrypted_access_token['access_token']
 
@@ -76,8 +76,8 @@ def lambda_handler(event, _context):
             print("Handling OPTIONS preflight request")
             return
         ssm_client = boto3.client('ssm')
-        client_id = ssm_client.get_parameter(Name='/budget/plaid/client_id', WithDecryption=True)['Parameter']['Value']
-        sandbox_secret = ssm_client.get_parameter(Name='/budget/plaid/sandbox_secret', WithDecryption=True)['Parameter']['Value']
+        client_id = ssm_client.get_parameter(Name='/bw3/plaid/client_id', WithDecryption=True)['Parameter']['Value']
+        sandbox_secret = ssm_client.get_parameter(Name='/bw3/plaid/sandbox_secret', WithDecryption=True)['Parameter']['Value']
         configuration = Configuration(
             host=Environment.Sandbox,
             api_key={

@@ -12,7 +12,7 @@ from plaid import Environment
 import jwt
 
 dynamodb = boto3.resource('dynamodb')
-userTable = dynamodb.Table('users-dev')
+userTable = dynamodb.Table('bw3-users-dev')
 
 
 def get_auth_token(event):
@@ -28,7 +28,7 @@ def verify_auth(event):
         print("No token found")
         raise Exception("No token found")
     try:
-        jwt_secret = boto3.client('ssm').get_parameter(Name='/budget/jwt-secret-key', WithDecryption=True)['Parameter']['Value']
+        jwt_secret = boto3.client('ssm').get_parameter(Name='/bw3/jwt-secret-key', WithDecryption=True)['Parameter']['Value']
         payload = jwt.decode(token, jwt_secret, algorithms=['HS256'])
     except jwt.ExpiredSignatureError as e:
         print(f"Expire Signature error: {e}")
@@ -59,8 +59,8 @@ def lambda_handler(event, _context):
             return
         user_id = verify_auth(event)
         ssm_client = boto3.client('ssm')
-        client_id = ssm_client.get_parameter(Name='/budget/plaid/client_id', WithDecryption=True)['Parameter']['Value']
-        sandbox_secret = ssm_client.get_parameter(Name='/budget/plaid/sandbox_secret', WithDecryption=True)['Parameter']['Value']
+        client_id = ssm_client.get_parameter(Name='/bw3/plaid/client_id', WithDecryption=True)['Parameter']['Value']
+        sandbox_secret = ssm_client.get_parameter(Name='/bw3/plaid/sandbox_secret', WithDecryption=True)['Parameter']['Value']
 
         configuration = Configuration(
             host=Environment.Sandbox,

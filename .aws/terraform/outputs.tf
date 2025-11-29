@@ -15,5 +15,5 @@ output "login_lambda_function_arn" {
 
 output "api_gateway_url" {
   description = "API Gateway URL"
-  value       = module.budget_api.api_endpoint
+  value       = module.bw3_api.api_endpoint
 }

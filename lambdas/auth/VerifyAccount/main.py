@@ -25,7 +25,7 @@ def lambda_handler(event, _context):
                 'body': json.dumps({'error': 'Invalid confirmation link'})
             }
         dynamodb = boto3.resource('dynamodb')
-        table = dynamodb.Table('users-dev')
+        table = dynamodb.Table('bw3-users-dev')
         response = table.query(
             KeyConditionExpression=Key('user_id').eq(user_id)
             )

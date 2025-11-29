@@ -1,4 +1,4 @@
-module "budget_api" {
+module "bw3_api" {
   source   = "./impl/apigateway"
   api_name = "auth-api-dev"
 

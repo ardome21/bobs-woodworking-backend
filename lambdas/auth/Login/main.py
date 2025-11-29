@@ -9,8 +9,8 @@ from boto3.dynamodb.conditions import Key
 import jwt
 
 dynamodb = boto3.resource('dynamodb')
-userTable = dynamodb.Table('users-dev')
-tokenTable = dynamodb.Table('budget-auth-token-dev')
+userTable = dynamodb.Table('bw3-users-dev')
+tokenTable = dynamodb.Table('bw3-auth-token-dev')
 
 
 def check_password(password: str, stored_hash: str) -> bool:
@@ -108,7 +108,7 @@ def login(event):
             'iat': datetime.now(timezone.utc),
             'exp': datetime.now(timezone.utc) + timedelta(minutes=30)
         }
-        jwt_secret = boto3.client('ssm').get_parameter(Name='/budget/jwt-secret-key', WithDecryption=True)['Parameter']['Value']
+        jwt_secret = boto3.client('ssm').get_parameter(Name='/bw3/jwt-secret-key', WithDecryption=True)['Parameter']['Value']
         access_token = jwt.encode(payload, jwt_secret, algorithm='HS256')
         print(f"Access token: {access_token}")
 
@@ -223,7 +223,7 @@ def verify_auth(event):
         'iat': datetime.now(timezone.utc),
         'exp': datetime.now(timezone.utc) + timedelta(minutes=30)
     }
-    jwt_secret = boto3.client('ssm').get_parameter(Name='/budget/jwt-secret-key', WithDecryption=True)['Parameter']['Value']
+    jwt_secret = boto3.client('ssm').get_parameter(Name='/bw3/jwt-secret-key', WithDecryption=True)['Parameter']['Value']
     access_token = jwt.encode(payload, jwt_secret, algorithm='HS256')
     print(f"Access token: {access_token}")
     

@@ -10,7 +10,7 @@ import uuid
 
 # Initialize DynamoDB client
 dynamodb = boto3.resource('dynamodb')
-users_table = dynamodb.Table('users-dev')
+users_table = dynamodb.Table('bw3-users-dev')
 
 def hash_password(password: str) -> str:
     """Hash a password using PBKDF2 with SHA256"""
@@ -80,17 +80,17 @@ def send_email(user_email: str, user_first_name: str, user_last_name: str, user_
     ses = boto3.client('ses', region_name='us-east-1')
     sender_email = 'ardome21+aws@gmail.com'
     admin_email = 'ardome21+aws@gmail.com'
-    subject = 'Confirm Email for Budget App'
+    subject = "Confirm Email for Bob's Woodworking App"
     confirmation_link = f"https://pqnibwgrl2.execute-api.us-east-1.amazonaws.com/verify-account?userid={user_id}&token={verification_token}" # TODO: Update with new api
 
     body = f"""
     <html>
     <body>
-        <h1>Welcome to Budget App, {user_first_name} {user_last_name}!</h1>
-        <p>Thank you for joining Budget App. We're excited to have you on board.</p>
+        <h1>Welcome to Bob's Woodworking App, {user_first_name} {user_last_name}!</h1>
+        <p>Thank you for joining Bob's Woodworking App. We're excited to have you on board.</p>
         <p>Please click the link to confirm this email and user</p>
         <a href="{confirmation_link}">
-        <p>Best regards,<br>Budget App Team</p>
+        <p>Best regards,<br>Bob's Woodworking App Team</p>
     </body>
     </html>
     """
