@@ -199,7 +199,7 @@ def validate_refresh_token(refresh_token):
         return user_id, refresh_token
     except Exception as e:
         print(f"Error validating and refreshing tokens: {e}")
-        raise RuntimeError(f"Failed to validate and refresh tokens: {e}") from e
+        raise RuntimeError(f"Failed to validate refresh token: {e}") from e
     
 def verify_auth(event):
     """
@@ -211,6 +211,8 @@ def verify_auth(event):
     4. Return user data and tokens
     """
     refresh_token = get_auth_token(event)
+    if not refresh_token:
+        return not_authenticated_response('No refresh token provided')
     user_id, refresh_token = validate_refresh_token(refresh_token)
     
     if not user_id:
