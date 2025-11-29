@@ -166,6 +166,7 @@ def get_auth_token(event):
         csrf_token = None
         cookies = event.get('cookies', [])
         for cookie in cookies:
+            print(f"Processing cookie: {cookie}")
             if cookie.startswith('refresh_token='):
                 refresh_token = cookie.split('=', 1)[1]
             if cookie.startswith('csrf_token='):
