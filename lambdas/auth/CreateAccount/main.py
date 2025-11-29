@@ -81,7 +81,7 @@ def send_email(user_email: str, user_first_name: str, user_last_name: str, user_
     sender_email = 'ardome21+aws@gmail.com'
     admin_email = 'ardome21+aws@gmail.com'
     subject = "Confirm Email for Bob's Woodworking App"
-    confirmation_link = f"https://pqnibwgrl2.execute-api.us-east-1.amazonaws.com/verify-account?userid={user_id}&token={verification_token}" # TODO: Update with new api
+    confirmation_link = f"https://onvnsym9th.execute-api.us-east-1.amazonaws.com/verify-account?userid={user_id}&token={verification_token}" # TODO: Update with new api
 
     body = f"""
     <html>
