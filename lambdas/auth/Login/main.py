@@ -119,7 +119,7 @@ def login(event):
         ).decode('utf-8')
         
         securely_store_server_tokens(refresh_token, user_id)
-        refresh_cookie = f'refresh_token={refresh_token}; HttpOnly; Secure; SameSite=None; Max-Age=604800; Path=/'
+        refresh_cookie = f'refresh_token={refresh_token}; HttpOnly; Secure; SameSite=Lax; Max-Age=604800; Path=/'
 
         userProfile = {
             'email': email,
@@ -165,12 +165,11 @@ def get_auth_token(event):
         raise RuntimeError("Failed to retrieve auth tokens from cookies") from e
 
 def not_authenticated_response(message='Not authenticated'):
-    refresh_cookie = 'refresh_token=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=None'
-    csrf_cookie = f'csrf_token=; Secure; SameSite=None; Path=/'
+    refresh_cookie = 'refresh_token=; Max-Age=0; HttpOnly; Secure; SameSite=Lax; Path=/'
     return {
         'statusCode': 200,
         'headers': {
-            'Set-Cookie': f"{refresh_cookie}, {csrf_cookie}"
+            'Set-Cookie': f"{refresh_cookie}"
         },
         'body': json.dumps({
             'success': False,
@@ -237,7 +236,7 @@ def verify_auth(event):
     ).decode('utf-8')
         
     securely_store_server_tokens(refresh_token, user_id)
-    refresh_cookie = f'refresh_token={refresh_token}; HttpOnly; Secure; SameSite=None; Max-Age=604800; Path=/'
+    refresh_cookie = f'refresh_token={refresh_token}; HttpOnly; Secure; SameSite=Lax; Max-Age=604800; Path=/'
 
     user_profile = {
         "email": user.get("email"),
