@@ -162,8 +162,8 @@ def login(event):
     
 def get_auth_token(event):
     try:
-        refresh_token: str
-        csrf_token: str
+        refresh_token = None
+        csrf_token = None
         cookies = event.get('cookies', [])
         for cookie in cookies:
             if cookie.startswith('refresh_token='):
