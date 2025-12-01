@@ -78,10 +78,10 @@ def check_user_exists(email: str) -> bool:
 def send_email(user_email: str, user_first_name: str, user_last_name: str, user_id: str, verification_token: str):
     """Send end email using SES"""
     ses = boto3.client('ses', region_name='us-east-1')
-    sender_email = 'ardome21+aws@gmail.com'
+    sender_email = 'noreply@bobs-woodworks.com'
     admin_email = 'ardome21+aws@gmail.com'
     subject = "Confirm Email for Bob's Woodworking App"
-    confirmation_link = f"https://onvnsym9th.execute-api.us-east-1.amazonaws.com/verify-account?userid={user_id}&token={verification_token}" # TODO: Update with new api
+    confirmation_link = f"https://api.bobs-woodworks/verify-account?userid={user_id}&token={verification_token}" # TODO: Update with new api
 
     body = f"""
     <html>
