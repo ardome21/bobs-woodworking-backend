@@ -47,7 +47,7 @@ def lambda_handler(event, _context):
             return {
                 'statusCode': 200,
                 'headers': {
-                    'Location': f'http://localhost:4200/confirmation-success?userid={user_id}'
+                    'Location': f'http://bobs-woodworks.com/confirmation-success?userid={user_id}'
                 },
                 'body': json.dumps({'message': 'Email already confirmed'})
             }
