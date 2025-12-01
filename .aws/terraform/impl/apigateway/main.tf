@@ -4,7 +4,7 @@ resource "aws_apigatewayv2_api" "this" {
   description   = "Shared API Gateway"
 
   cors_configuration {
-    allow_origins     = ["http://localhost:4200", "https://bobs-woodworking.com"]
+    allow_origins     = ["http://localhost:4200", "https://bobs-woodworking.com", "https://www.bobs-woodworks.com"]
     allow_credentials = true
     allow_methods     = ["POST", "GET", "OPTIONS"]
     allow_headers     = ["content-type", "authorization"]
