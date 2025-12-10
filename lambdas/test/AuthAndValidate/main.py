@@ -39,10 +39,6 @@ def require_role(*allowed_roles):
                 if not auth_header.startswith('Bearer '):
                     return {
                         'statusCode': 401,
-                        'headers': {
-                            'Content-Type': 'application/json',
-                            'Access-Control-Allow-Origin': '*'  # Adjust for your CORS policy
-                        },
                         'body': json.dumps({
                             'message': 'Missing or invalid authorization header'
                         })
@@ -60,10 +56,6 @@ def require_role(*allowed_roles):
                 if exp and datetime.fromtimestamp(exp, tz=timezone.utc) < datetime.now(timezone.utc):
                     return {
                         'statusCode': 401,
-                        'headers': {
-                            'Content-Type': 'application/json',
-                            'Access-Control-Allow-Origin': '*'
-                        },
                         'body': json.dumps({'message': 'Token has expired'})
                     }
                 
@@ -72,20 +64,12 @@ def require_role(*allowed_roles):
                 if not user_role:
                     return {
                         'statusCode': 403,
-                        'headers': {
-                            'Content-Type': 'application/json',
-                            'Access-Control-Allow-Origin': '*'
-                        },
                         'body': json.dumps({'message': 'No role found in token'})
                     }
                 
                 if user_role not in allowed_roles:
                     return {
                         'statusCode': 403,
-                        'headers': {
-                            'Content-Type': 'application/json',
-                            'Access-Control-Allow-Origin': '*'
-                        },
                         'body': json.dumps({
                             'message': f'Insufficient permissions. Required: {", ".join(allowed_roles)}'
                         })
@@ -100,29 +84,17 @@ def require_role(*allowed_roles):
             except jwt.ExpiredSignatureError:
                 return {
                     'statusCode': 401,
-                    'headers': {
-                        'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*'
-                    },
                     'body': json.dumps({'message': 'Token has expired'})
                 }
             except jwt.InvalidTokenError as e:
                 return {
                     'statusCode': 401,
-                    'headers': {
-                        'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*'
-                    },
                     'body': json.dumps({'message': f'Invalid token: {str(e)}'})
                 }
             except Exception as e:
                 print(f"Authorization error: {str(e)}")  # CloudWatch logs
                 return {
                     'statusCode': 500,
-                    'headers': {
-                        'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*'
-                    },
                     'body': json.dumps({'message': 'Internal server error'})
                 }
         
@@ -144,18 +116,17 @@ def lambda_handler(event, context):
     user = event.get('user', {})
     user_email = user.get('email')
     user_id = user.get('user_id')
+    user_role = user.get('role')
     
     # Your actual business logic here
     print(f"Admin {user_email} accessed the admin endpoint")
     
     return {
         'statusCode': 200,
-        'headers': {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-        },
         'body': json.dumps({
             'message': 'Admin operation successful',
-            'user': user_email
+            'user_email': user_email,
+            'user_id': user_id,
+            'user_role': user_role
         })
     }
