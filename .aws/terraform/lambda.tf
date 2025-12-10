@@ -29,3 +29,11 @@
   existing_iam_role_arn = var.existing_iam_role_arn
   lambda_layers         = [aws_lambda_layer_version.jwt_layer.arn]
 }
+
+  module "auth_and_validate_lambda" {
+  source               = "./impl/lambda"
+  lambda_name          = "bw3-auth-and-validate-dev"
+  source_file          = "../../lambdas/test/AuthAndValidate/main.py"
+  existing_iam_role_arn = var.existing_iam_role_arn
+  lambda_layers         = [aws_lambda_layer_version.jwt_layer.arn]
+}

@@ -1,6 +1,6 @@
 module "bw3_api" {
   source   = "./impl/apigateway"
-  api_name = "bw3-auth-api-dev"
+  api_name = "bw3-api-dev"
 
   routes = [
     {
@@ -50,6 +50,12 @@ module "bw3_api" {
       path              = "/sign-up"
       lambda_name       = module.create_account_lambda.function_name
       lambda_invoke_arn = module.create_account_lambda.invoke_arn
+    },
+    {
+      method            = "GET"
+      path              = "/auth-and-validate"
+      lambda_name       = module.auth_and_validate_lambda.function_name
+      lambda_invoke_arn = module.auth_and_validate_lambda.invoke_arn
     }
   ]
 }

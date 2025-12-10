@@ -43,11 +43,12 @@ def securely_store_server_tokens(refresh_token, user_id):
         print(f"Failed to securely store server tokens for user {user_id}: {e}")
         raise e
     
-def create_access_token(email, user_id):
+def create_access_token(email, user_id, user_role):
     """Create JWT access token"""
     payload = {
         'email': email,
         'user_id': user_id,
+        'role': user_role,
         'iat': datetime.now(timezone.utc),
         'exp': datetime.now(timezone.utc) + timedelta(minutes=30)
     }
@@ -113,7 +114,8 @@ def login(event):
                 })
             }
         user_id = user['user_id']
-        access_token = create_access_token(email, user_id)
+        user_role = user['role']
+        access_token = create_access_token(email, user_id, user_role)
         refresh_token = base64.urlsafe_b64encode(
             boto3.client('kms').generate_random(NumberOfBytes=32)['Plaintext']
         ).decode('utf-8')
@@ -230,8 +232,9 @@ def verify_auth(event):
         return not_authenticated_response('Multiple users found')
     user = response['Items'][0]
     email = user.get('email')
+    user_role = user.get('role')
 
-    access_token = create_access_token(email, user_id)
+    access_token = create_access_token(email, user_id, user_role)
     refresh_token = base64.urlsafe_b64encode(
         boto3.client('kms').generate_random(NumberOfBytes=32)['Plaintext']
     ).decode('utf-8')
