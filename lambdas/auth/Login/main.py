@@ -125,7 +125,8 @@ def login(event):
             'email': email,
             'user_id': user_id,
             'first_name': user['first_name'],
-            'last_name': user['last_name']
+            'last_name': user['last_name'],
+            'role': user['role']
         }
         print(f"User profile: {userProfile}")
         print(f"Access token: {access_token}")
@@ -242,7 +243,8 @@ def verify_auth(event):
         "email": user.get("email"),
         "user_id": user.get("user_id"),
         "first_name": user.get("first_name"),
-        "last_name": user.get("last_name")
+        "last_name": user.get("last_name"),
+        "role": user.get("role")
     }
     return {
         'statusCode': 200,

@@ -43,6 +43,7 @@ def create_user_record(email: str, firstName: str, lastName: str, hashed_passwor
         'email': email,
         'first_name': firstName,
         'last_name': lastName,
+        'role': 'user',
         'password_hash': hashed_password,
         'created_at': timestamp,
         'updated_at': timestamp,
