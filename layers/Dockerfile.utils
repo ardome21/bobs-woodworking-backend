@@ -1,0 +1,25 @@
+FROM python:3.11-slim
+
+# Create the proper layer structure
+WORKDIR /opt
+RUN mkdir -p python
+
+# Install zip utility and dependencies
+RUN apt-get update && apt-get install -y zip && rm -rf /var/lib/apt/lists/*
+
+# Install PyJWT into the python directory (required dependency for auth_utils)
+RUN pip install PyJWT -t python/ && \
+    find python/ -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true && \
+    find python/ -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
+    find python/ -name "*.pyc" -delete && \
+    pip cache purge
+
+# Copy auth_utils.py into the python directory
+COPY layers/utils/python/auth_utils.py python/
+
+# Create the zip file with correct structure
+RUN zip -r /utils_layer.zip python/ -x "*.pyc" "*/__pycache__/*"
+
+# Use volume mount to copy out the zip file
+VOLUME /output
+CMD cp /utils_layer.zip /output/
