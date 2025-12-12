@@ -22,4 +22,4 @@ RUN zip -r /utils_layer.zip python/ -x "*.pyc" "*/__pycache__/*"
 
 # Use volume mount to copy out the zip file
 VOLUME /output
-CMD cp /utils_layer.zip /output/
+CMD ["cp", "/utils_layer.zip", "/output/"]

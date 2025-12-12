@@ -56,6 +56,18 @@ module "bw3_api" {
       path              = "/auth-and-validate"
       lambda_name       = module.auth_and_validate_lambda.function_name
       lambda_invoke_arn = module.auth_and_validate_lambda.invoke_arn
+    },
+    {
+      method            = "POST"
+      path              = "/add-product"
+      lambda_name       = module.add_product_lambda.function_name
+      lambda_invoke_arn = module.add_product_lambda.invoke_arn
+    },
+    {
+      method            = "OPTIONS"
+      path              = "/add-product"
+      lambda_name       = module.add_product_lambda.function_name
+      lambda_invoke_arn = module.add_product_lambda.invoke_arn
     }
   ]
 }

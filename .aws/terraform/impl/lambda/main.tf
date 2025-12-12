@@ -13,5 +13,5 @@ resource "aws_lambda_function" "this" {
   source_code_hash  = data.archive_file.lambda_zip.output_base64sha256
   layers            = var.lambda_layers
   timeout           = 30
-  memory_size       = 128
+  memory_size       = 512
 }

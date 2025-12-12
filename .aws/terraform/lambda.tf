@@ -1,4 +1,4 @@
-  module "login_lambda" {
+module "login_lambda" {
   source               = "./impl/lambda"
   lambda_name          = "bw3-login-dev"
   source_file          = "../../lambdas/auth/Login/main.py"
@@ -6,7 +6,7 @@
   lambda_layers         = [aws_lambda_layer_version.jwt_layer.arn]
 }
 
-  module "logout_lambda" {
+module "logout_lambda" {
   source               = "./impl/lambda"
   lambda_name          = "bw3-logout-dev"
   source_file          = "../../lambdas/auth/Logout/main.py"
@@ -14,7 +14,7 @@
   lambda_layers         = [aws_lambda_layer_version.jwt_layer.arn]
 }
 
-  module "verify_account_lambda" {
+module "verify_account_lambda" {
   source               = "./impl/lambda"
   lambda_name          = "bw3-verify-account-dev"
   source_file          = "../../lambdas/auth/VerifyAccount/main.py"
@@ -22,7 +22,7 @@
   lambda_layers         = [aws_lambda_layer_version.jwt_layer.arn]
 }
 
-  module "create_account_lambda" {
+module "create_account_lambda" {
   source               = "./impl/lambda"
   lambda_name          = "bw3-create-account-dev"
   source_file          = "../../lambdas/auth/CreateAccount/main.py"
@@ -30,7 +30,7 @@
   lambda_layers         = [aws_lambda_layer_version.jwt_layer.arn]
 }
 
-  module "auth_and_validate_lambda" {
+module "auth_and_validate_lambda" {
   source               = "./impl/lambda"
   lambda_name          = "bw3-auth-and-validate-dev"
   source_file          = "../../lambdas/test/AuthAndValidate/main.py"
@@ -38,4 +38,12 @@
   lambda_layers         = [
     aws_lambda_layer_version.jwt_layer.arn,
     aws_lambda_layer_version.utils_layer.arn]
+}
+
+module "add_product_lambda" {
+  source               = "./impl/lambda"
+  lambda_name          = "bw3-add-product-dev"
+  source_file          = "../../lambdas/products/AddProduct/main.py"
+  existing_iam_role_arn = var.existing_iam_role_arn
+  lambda_layers         = [aws_lambda_layer_version.utils_layer.arn]
 }
