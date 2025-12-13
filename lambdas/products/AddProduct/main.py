@@ -1,12 +1,11 @@
 # """ Lambda function to add a product"""
 import json
-from auth_utils import require_role
 import base64
-import cgi
-from io import BytesIO
 import boto3
-import uuid
 from datetime import datetime
+
+from auth_utils import require_role
+from multipart import parse_multipart_formdata
 
 # Initialize AWS clients
 dynamodb = boto3.resource('dynamodb')
@@ -16,43 +15,6 @@ s3 = boto3.client('s3')
 PRODUCTS_TABLE_NAME = 'bw3-products-dev'
 S3_BUCKET_NAME = 'bw3-images-dev'
 S3_FOLDER = 'products'
-
-def parse_multipart_formdata(body_bytes, content_type):
-    """
-    Parse multipart/form-data without external dependencies.
-    Returns a dictionary of field names to values.
-    """
-    # Parse content type to get boundary
-    ctype, pdict = cgi.parse_header(content_type)
-    
-    if 'boundary' not in pdict:
-        raise ValueError("No boundary found in Content-Type header")
-    
-    # Ensure boundary is bytes
-    pdict['boundary'] = pdict['boundary'].encode('utf-8') if isinstance(pdict['boundary'], str) else pdict['boundary']
-    
-    # Parse multipart form data
-    fields = cgi.parse_multipart(BytesIO(body_bytes), pdict)
-    
-    # Separate text fields and files
-    text_fields = {}
-    file_fields = {}
-    
-    for field_name, field_values in fields.items():
-        if field_values:
-            value = field_values[0]
-            # Try to decode as text
-            if isinstance(value, bytes):
-                try:
-                    decoded_value = value.decode('utf-8')
-                    text_fields[field_name] = decoded_value
-                except UnicodeDecodeError:
-                    # Keep as bytes for files
-                    file_fields[field_name] = value
-            else:
-                text_fields[field_name] = value
-    
-    return text_fields, file_fields
 
 def upload_images_to_s3(product_id, file_fields):
     """
@@ -68,15 +30,14 @@ def upload_images_to_s3(product_id, file_fields):
     image_keys = []
     
     for image_idx, (field_name, file_content) in enumerate(file_fields.items(), start=1):
-        s3_key = f"{S3_FOLDER}/{product_id}/{image_idx}"
+        s3_key = f"{S3_FOLDER}/{product_id}/{image_idx}:{field_name}"
         
         try:
-            # Upload to S3
             s3.put_object(
                 Bucket=S3_BUCKET_NAME,
                 Key=s3_key,
                 Body=file_content,
-                ContentType='image/jpeg'  # Adjust based on actual file type if needed
+                ContentType='image/jpeg'
             )
             
             image_keys.append(s3_key)
@@ -167,13 +128,10 @@ def add_product(event):
     Business logic to add a product.
     """
     try:
-        print("Starting add_product function")
-        
-        # Decode base64 body
+        print("Begin adding product")
         body = base64.b64decode(event['body'])
         print(f"Decoded body length: {len(body)}")
         
-        # Get content-type header
         content_type = event['headers'].get('content-type') or event['headers'].get('Content-Type')
         print(f"Content-Type: {content_type}")
         

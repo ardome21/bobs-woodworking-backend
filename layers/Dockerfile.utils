@@ -15,7 +15,7 @@ RUN pip install PyJWT -t python/ && \
     pip cache purge
 
 # Copy auth_utils.py into the python directory
-COPY layers/utils/python/auth_utils.py python/
+COPY layers/utils/python/ python/
 
 # Create the zip file with correct structure
 RUN zip -r /utils_layer.zip python/ -x "*.pyc" "*/__pycache__/*"

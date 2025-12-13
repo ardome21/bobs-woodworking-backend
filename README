@@ -11,3 +11,10 @@ supported by AWS.
 2. Create Terraform State Bucket
 3. Create Terrafrom State Lock Table
 4. Create App Role + Policies
+
+## Build Layer zip file
+
+docker build -f layers/Dockerfile.{replace-w-file_name} -t {replace-w-layer-name} .
+docker run --rm -v /Users/antoniod621/Documents/Coding/bobs-woodworking/bobs-woodworing-backend/layers/output:/output {replace-w-layer-name}
+
+docker build -f layers/Dockerfile.utils -t utils-layer .
