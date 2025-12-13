@@ -1,48 +1,19 @@
 # """ Lambda function to add a product"""
 import json
-
-from auth_utils import require_role
-
-import base64
-from multipart import parse_form_data
-from io import BytesIO
+from auth_utils import require_rolex
 
 def add_product(event):
     """
     Business logic to add a product.
     """
     try:
-        # Decode base64 body
-        body = base64.b64decode(event['body'])
-        
-        # Get content-type header
-        content_type = event['headers'].get('content-type') or event['headers'].get('Content-Type')
-        
-        # Parse multipart form data
-        environ = {
-            'REQUEST_METHOD': 'POST',
-            'CONTENT_TYPE': content_type,
-            'CONTENT_LENGTH': str(len(body)),
-            'wsgi.input': BytesIO(body)
+        print("Starting add_product function")
+        return {
+            'statusCode': 200,
+            'body': json.dumps({
+                'message': 'Product added successfully'
+            })
         }
-        
-        forms, files = parse_form_data(environ)
-        
-        # Access form fields
-        title = forms.get('title')
-        description = forms.get('description')
-        price = forms.get('price')
-        
-        print(f"Title: {title}")
-        print(f"Description: {description}")
-        print(f"Price: {price}")
-
-        for filename, fileinfo in files.items():
-            file_content = fileinfo.file.read()
-            print(f"Received file: {filename} with content: {file_content[:20]}... (truncated)")
-        
-        user = event.get('user')
-        print(f"User: {user}")
         
     except Exception as e:
         print(f"Error in add_product: {e}")
@@ -53,12 +24,18 @@ def lambda_handler(event, _context):
     """
     Entry point to lambda function
     """
+    print(f"Lambda handler started with event: {json.dumps(event, default=str)}")
     try:
         http_method = event.get('httpMethod') or event.get(
             'requestContext', {}).get('http', {}).get('method')
+        print(f"HTTP Method: {http_method}")
+        
         if http_method == 'OPTIONS':
             print("Handling OPTIONS preflight request")
-            return
+            return {
+                'statusCode': 200,
+                'body': json.dumps({'message': 'OK'})
+            }
         if http_method == 'POST': 
             print("Handling POST request")
             return add_product(event)
@@ -68,26 +45,6 @@ def lambda_handler(event, _context):
                 'statusCode': 405,
                 'body': json.dumps({'message': 'Method Not Allowed'})
             }
-        # print("Begin Script...")
-        # print(f"Event body: {event['body']}")
-        # is_base64 = event.get('isBase64Encoded', False)
-        # print(f"Is base64: {is_base64}")
-    
-        # body = event['body']
-        
-        # if is_base64:
-        #     # Decode the base64 body
-        #     print(f"Undecode Body : {body}")
-        #     decoded_body = base64.b64decode(body).decode('utf-8')
-        #     print(f"Decoded body: {decoded_body}")
-        # else:
-        #     decoded_body = body
-        #     print(f"Unencoded body: {decoded_body}")
-        
-        # # Parse the form data
-        # # For URL-encoded form data:
-        # form_data = parse_qs(decoded_body)
-        # print(f"Form data: {form_data}")
     except RuntimeError as re:
         print(f"Runtime Error Adding Product: {re}")
         return {
@@ -102,7 +59,7 @@ def lambda_handler(event, _context):
         return {
             'statusCode': 500,
             'body': json.dumps({
-                'message': 'F',
-                'error': f'Internal server error: {e}'
+                'message': 'Internal server error',
+                'error': str(e)
                 })
         }
