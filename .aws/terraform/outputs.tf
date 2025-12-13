@@ -1,8 +1,3 @@
-output "jwt_layer_arn" {
-  description = "ARN of the jwt layer"
-  value       = aws_lambda_layer_version.jwt_layer.arn
-}
-
 output "login_lambda_function_name" {
   description = "Name of the login Lambda function"
   value       = module.login_lambda.function_name
