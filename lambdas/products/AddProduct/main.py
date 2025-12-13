@@ -1,6 +1,6 @@
 # """ Lambda function to add a product"""
 import json
-from auth_utils import require_rolex
+from auth_utils import require_role
 
 def add_product(event):
     """
