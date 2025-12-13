@@ -119,6 +119,50 @@ def save_product_to_dynamodb(product_id, title, description, price, image_keys):
         print(f"Error saving product to DynamoDB: {e}")
         raise
 
+def generate_product_id():
+    """
+    Create product id with format: YY_NNN (e.g., 25_001, 25_002)
+    Uses atomic DynamoDB counter to prevent collisions.
+    """
+    try:
+        from datetime import datetime
+        from botocore.exceptions import ClientError
+        
+        current_year = datetime.now().strftime('%y')
+        counter_key = f'COUNTER_{current_year}'
+        table = dynamodb.Table(PRODUCTS_TABLE_NAME)
+        
+        try:
+            # Atomic increment - prevents race conditions
+            response = table.update_item(
+                Key={'product_id': counter_key},
+                UpdateExpression='ADD product_count :inc',
+                ExpressionAttributeValues={':inc': 1},
+                ReturnValues='UPDATED_NEW'
+            )
+            next_number = int(response['Attributes']['product_count'])
+        except ClientError as e:
+            error_code = e.response.get('Error', {}).get('Code', '')
+            if error_code == 'ValidationException':
+                # Counter doesn't exist, create it
+                table.put_item(Item={
+                    'product_id': counter_key,
+                    'product_count': 1
+                })
+                next_number = 1
+            else:
+                raise
+        
+        # Format: YY_NNN
+        product_id = f"{current_year}_{next_number:03d}"
+        
+        print(f"Generated product ID: {product_id}")
+        return product_id
+        
+    except Exception as e:
+        print(f"Failed to generate product id: {e}")
+        raise RuntimeError(f"Failed to generate product_id: {e}") from e
+
 def add_product(event):
     """
     Business logic to add a product.
@@ -159,7 +203,7 @@ def add_product(event):
             }
         
         # Generate new product ID
-        product_id = str(uuid.uuid4())
+        product_id = generate_product_id()
         print(f"Generated product ID: {product_id}")
         
         # Upload images to S3
