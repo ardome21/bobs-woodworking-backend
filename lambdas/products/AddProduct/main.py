@@ -14,7 +14,7 @@ s3 = boto3.client('s3')
 
 # Configuration
 PRODUCTS_TABLE_NAME = 'bw3-products-dev'
-S3_BUCKET_NAME = 'bw3-images'
+S3_BUCKET_NAME = 'bw3-images-dev'
 S3_FOLDER = 'products'
 
 def parse_multipart_formdata(body_bytes, content_type):
