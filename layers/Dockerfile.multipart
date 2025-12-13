@@ -1,0 +1,25 @@
+FROM python:3.11-slim
+
+# Create the proper layer structure
+WORKDIR /opt
+RUN mkdir -p python
+
+# Install zip utility
+RUN apt-get update && apt-get install -y zip && rm -rf /var/lib/apt/lists/*
+
+# Install python-multipart into the python directory
+RUN pip install python-multipart -t python/ && \
+    find python/ -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true && \
+    find python/ -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
+    find python/ -name "*.pyc" -delete && \
+    pip cache purge
+
+# Copy multipart_utils.py into the python directory (optional)
+# COPY layers/multipart/python/multipart_utils.py python/ 2>/dev/null || true
+
+# Create the zip file with correct structure
+RUN zip -r /multipart_layer.zip python/ -x "*.pyc" "*/__pycache__/*"
+
+# Use volume mount to copy out the zip file
+VOLUME /output
+CMD ["cp", "/multipart_layer.zip", "/output/"]

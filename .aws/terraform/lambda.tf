@@ -43,5 +43,8 @@ module "add_product_lambda" {
   lambda_name          = "bw3-add-product-dev"
   source_file          = "../../lambdas/products/AddProduct/main.py"
   existing_iam_role_arn = var.existing_iam_role_arn
-  lambda_layers         = [aws_lambda_layer_version.utils_layer.arn]
+  lambda_layers         = [
+    aws_lambda_layer_version.utils_layer.arn,
+    aws_lambda_layer_version.multipart_layer.arn
+  ]
 }
