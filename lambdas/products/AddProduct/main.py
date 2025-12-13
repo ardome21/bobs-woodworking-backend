@@ -68,8 +68,7 @@ def upload_images_to_s3(product_id, file_fields):
     image_keys = []
     
     for image_idx, (field_name, file_content) in enumerate(file_fields.items(), start=1):
-        # Generate S3 key: products/product_id:image_id
-        s3_key = f"{S3_FOLDER}/{product_id}:{image_idx}"
+        s3_key = f"{S3_FOLDER}/{product_id}/{image_idx}"
         
         try:
             # Upload to S3
