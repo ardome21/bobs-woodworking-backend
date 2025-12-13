@@ -12,3 +12,10 @@ module "bw3_auth_token_table" {
   partition_key = "user_id"
   environment   = "dev"
 }
+
+module "bw3_products_table" {
+  source        = "./impl/dynamodb"
+  table_name    = "bw3-products-dev"
+  partition_key = "product_id"
+  environment   = "dev"
+}
