@@ -2,9 +2,7 @@
 import json
 import base64
 import boto3
-from datetime import datetime
-
-from botocore.exceptions import ClientError
+from datetime import datetime, timezone
 
 from auth_utils import require_role
 from multipart import parse_multipart_formdata
@@ -70,8 +68,8 @@ def save_product_to_dynamodb(product_id, title, description, price, image_keys):
         'description': description,
         'price': price,
         'images': image_keys,
-        'created_at': datetime.utcnow().isoformat(),
-        'updated_at': datetime.utcnow().isoformat()
+        'created_at': datetime.now(timezone.utc),
+        'updated_at': datetime.now(timezone.utc)
     }
     
     try:
