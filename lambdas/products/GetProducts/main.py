@@ -105,8 +105,8 @@ def get_products(product_table):
 
 def lambda_handler(event, _context):
     try:
-        query_params = event.get('queryStringParameters') or {}
-        product_id = query_params.get('id')
+        path_params = event.get('pathParameters') or {}
+        product_id = path_params.get('id')
         table = dynamodb.Table(PRODUCTS_TABLE_NAME)
 
         if product_id:
