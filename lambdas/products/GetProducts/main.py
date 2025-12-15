@@ -5,38 +5,25 @@
 
 import json
 import boto3
-from datetime import datetime, timezone
 from typing import Dict, Any, List, cast
-from dynamo_utils import decimal_to_native
+
+from dynamo_utils import normalize_dynamodb_decimals
+from s3_utils import generate_presigned_url
 
 PRODUCTS_TABLE_NAME = 'bw3-products-dev'
 S3_BUCKET_NAME = 'bw3-images-dev'
-S3_URL_EXPIRATION = 3600  # seconds (1 hour)
 
 dynamodb = boto3.resource('dynamodb')
-s3 = boto3.client('s3')
-
-
-def generate_presigned_url(s3_key: str) -> str:
-    return s3.generate_presigned_url(
-        ClientMethod='get_object',
-        Params={
-            'Bucket': S3_BUCKET_NAME,
-            'Key': s3_key,
-        },
-        ExpiresIn=S3_URL_EXPIRATION,
-    )
-
 
 def format_product(raw_item: Dict[str, Any]) -> Dict[str, Any]:
     """Convert raw DynamoDB item to formatted product with presigned URLs"""
     try:
-        item = cast(Dict[str, Any], decimal_to_native(raw_item))
+        item = cast(Dict[str, Any], normalize_dynamodb_decimals(raw_item))
 
         image_urls: List[str] = []
         for s3_key in item.get('images', []):
             if isinstance(s3_key, str):
-                image_urls.append(generate_presigned_url(s3_key))
+                image_urls.append(generate_presigned_url(S3_BUCKET_NAME ,s3_key))
 
         return {
             'id': item.get('product_id'),
@@ -88,7 +75,6 @@ def get_products(product_table):
     :param product_table:
     """
     try:
-        # Get all products
         response = product_table.scan()
         raw_items = response.get('Items', [])
 

@@ -59,13 +59,13 @@ module "bw3_api" {
     },
     {
       method            = "POST"
-      path              = "/product"
+      path              = "/products"
       lambda_name       = module.add_product_lambda.function_name
       lambda_invoke_arn = module.add_product_lambda.invoke_arn
     },
     {
       method            = "OPTIONS"
-      path              = "/product"
+      path              = "/products"
       lambda_name       = module.add_product_lambda.function_name
       lambda_invoke_arn = module.add_product_lambda.invoke_arn
     },

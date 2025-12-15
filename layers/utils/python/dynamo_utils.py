@@ -6,7 +6,7 @@ from decimal import Decimal
 from typing import Any
 
 
-def decimal_to_native(value: Any) -> Any:
+def normalize_dynamodb_decimals(value: Any) -> Any:
     """
     Recursively convert DynamoDB Decimals to native Python types.
 
@@ -27,19 +27,19 @@ def decimal_to_native(value: Any) -> Any:
         The same structure with all Decimals converted to float
 
     Examples:
-        >>> decimal_to_native(Decimal('19.99'))
+        >>> normalize_dynamodb_decimals(Decimal('19.99'))
         19.99
 
-        >>> decimal_to_native({'price': Decimal('19.99'), 'quantity': 5})
+        >>> normalize_dynamodb_decimals({'price': Decimal('19.99'), 'quantity': 5})
         {'price': 19.99, 'quantity': 5}
 
-        >>> decimal_to_native([Decimal('10.50'), Decimal('20.75')])
+        >>> normalize_dynamodb_decimals([Decimal('10.50'), Decimal('20.75')])
         [10.5, 20.75]
     """
     if isinstance(value, list):
-        return [decimal_to_native(v) for v in value]
+        return [normalize_dynamodb_decimals(v) for v in value]
     if isinstance(value, dict):
-        return {k: decimal_to_native(v) for k, v in value.items()}
+        return {k: normalize_dynamodb_decimals(v) for k, v in value.items()}
     if isinstance(value, Decimal):
         return float(value)
     return value
