@@ -3,6 +3,8 @@ import json
 import base64
 import boto3
 from datetime import datetime, timezone
+from decimal import Decimal
+
 
 from auth_utils import require_role
 from multipart import parse_multipart_formdata
@@ -61,6 +63,8 @@ def save_product_to_dynamodb(product_id, title, description, price, image_keys):
         image_keys: List of S3 object keys for images
     """
     table = dynamodb.Table(PRODUCTS_TABLE_NAME)
+    now = datetime.now(timezone.utc).isoformat()
+    price = Decimal(price)
     
     item = {
         'product_id': product_id,
@@ -68,8 +72,8 @@ def save_product_to_dynamodb(product_id, title, description, price, image_keys):
         'description': description,
         'price': price,
         'images': image_keys,
-        'created_at': datetime.now(timezone.utc),
-        'updated_at': datetime.now(timezone.utc)
+        'created_at': now,
+        'updated_at': now
     }
     
     try:
