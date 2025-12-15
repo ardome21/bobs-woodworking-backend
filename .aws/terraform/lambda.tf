@@ -45,3 +45,11 @@ module "add_product_lambda" {
   existing_iam_role_arn = var.existing_iam_role_arn
   lambda_layers         = [ aws_lambda_layer_version.utils_layer.arn ]
 }
+
+module "get_products_lambda" {
+  source               = "./impl/lambda"
+  lambda_name          = "bw3-get-products-dev"
+  source_file          = "../../lambdas/products/GetProducts/main.py"
+  existing_iam_role_arn = var.existing_iam_role_arn
+  lambda_layers         = [ aws_lambda_layer_version.utils_layer.arn ]
+}

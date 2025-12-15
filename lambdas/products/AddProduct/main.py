@@ -171,8 +171,8 @@ def add_product(event):
             'statusCode': 201,
             'body': json.dumps({
                 'message': 'Product added successfully',
-                'data': {
-                    'product_id': product_id,
+                'product': {
+                    'id': product_id,
                     'title': title,
                     'description': description,
                     'price': price,

@@ -59,16 +59,22 @@ module "bw3_api" {
     },
     {
       method            = "POST"
-      path              = "/add-product"
+      path              = "/product"
       lambda_name       = module.add_product_lambda.function_name
       lambda_invoke_arn = module.add_product_lambda.invoke_arn
     },
     {
       method            = "OPTIONS"
-      path              = "/add-product"
+      path              = "/product"
       lambda_name       = module.add_product_lambda.function_name
       lambda_invoke_arn = module.add_product_lambda.invoke_arn
-    }
+    },
+    {
+      method            = "GET"
+      path              = "/products"
+      lambda_name       = module.get_products_lambda.function_name
+      lambda_invoke_arn = module.get_products_lambda.invoke_arn
+    },
   ]
 }
 
