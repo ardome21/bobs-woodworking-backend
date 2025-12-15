@@ -1,35 +1,20 @@
+"""
+    Get Products Lambda
+    Returns all products
+"""
+
 import json
 import boto3
-from decimal import Decimal
 from datetime import datetime, timezone
 from typing import Dict, Any, List, cast
+from dynamo_utils import decimal_to_native
 
-# --------------------
-# Config
-# --------------------
 PRODUCTS_TABLE_NAME = 'bw3-products-dev'
 S3_BUCKET_NAME = 'bw3-images-dev'
 S3_URL_EXPIRATION = 3600  # seconds (1 hour)
 
-# --------------------
-# AWS Clients
-# --------------------
 dynamodb = boto3.resource('dynamodb')
 s3 = boto3.client('s3')
-
-
-# --------------------
-# Helpers
-# --------------------
-def decimal_to_native(value: Any) -> Any:
-    """Recursively convert DynamoDB Decimals to native Python types."""
-    if isinstance(value, list):
-        return [decimal_to_native(v) for v in value]
-    if isinstance(value, dict):
-        return {k: decimal_to_native(v) for k, v in value.items()}
-    if isinstance(value, Decimal):
-        return float(value)
-    return value
 
 
 def generate_presigned_url(s3_key: str) -> str:
@@ -42,10 +27,6 @@ def generate_presigned_url(s3_key: str) -> str:
         ExpiresIn=S3_URL_EXPIRATION,
     )
 
-
-# --------------------
-# Lambda Handler
-# --------------------
 def lambda_handler(event, _context):
     try:
         table = dynamodb.Table(PRODUCTS_TABLE_NAME)

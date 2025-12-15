@@ -8,6 +8,7 @@ from decimal import Decimal
 
 from auth_utils import require_role
 from multipart import parse_multipart_formdata
+from dynamo_utils import decimal_to_native
 
 # # Initialize AWS clients
 dynamodb = boto3.resource('dynamodb')
@@ -100,6 +101,7 @@ def generate_product_id():
             }
         )
         items = response.get('Items', [])
+        items = [decimal_to_native(item) for item in items]
 
         max_number = 0
         for item in items:

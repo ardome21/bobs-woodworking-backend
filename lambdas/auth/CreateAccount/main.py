@@ -21,7 +21,6 @@ def hash_password(password: str) -> str:
 
 def generate_user_id():
     response = users_table.scan(ProjectionExpression='user_id')
-    
     max_id = 0
     for item in response['Items']:
         user_id = item['user_id']

@@ -17,4 +17,7 @@ supported by AWS.
 docker build -f layers/Dockerfile.{replace-w-file_name} -t {replace-w-layer-name} .
 docker run --rm -v /Users/antoniod621/Documents/Coding/bobs-woodworking/bobs-woodworing-backend/layers/output:/output {replace-w-layer-name}
 
+ex:
 docker build -f layers/Dockerfile.utils -t utils-layer .
+
+docker run --rm -v $PWD/layers/output:/output utils-layer
