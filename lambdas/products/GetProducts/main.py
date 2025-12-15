@@ -78,11 +78,6 @@ def lambda_handler(event, _context):
 
         return {
             'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET,OPTIONS',
-            },
             'body': json.dumps({
                 'products': products
             }),
@@ -93,9 +88,6 @@ def lambda_handler(event, _context):
 
         return {
             'statusCode': 500,
-            'headers': {
-                'Access-Control-Allow-Origin': '*',
-            },
             'body': json.dumps({
                 'message': 'Internal server error',
                 'error': str(e),
