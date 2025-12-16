@@ -60,7 +60,7 @@ resource "aws_lambda_permission" "api_invoke" {
     for route in var.routes : "${route.method} ${route.path}" => route
   }
 
-  statement_id  = "AllowInvoke-${replace(replace(each.key, " ", "-"), "/", "-")}"
+  statement_id  = "AllowInvoke-${replace(each.key, "/[^a-zA-Z0-9-]/", "-")}"
   action        = "lambda:InvokeFunction"
   function_name = each.value.lambda_name
   principal     = "apigateway.amazonaws.com"
