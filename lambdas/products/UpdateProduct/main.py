@@ -136,14 +136,44 @@ def update_product(event: Dict[str, Any]) -> Dict[str, Any]:
         print(f"Price: {price}")
 
         # Handle images
-        image_keys = current_product.get('images', [])
+        # Parse existing_images field (JSON array of S3 keys to keep)
+        existing_images_json = text_fields.get('existing_images', '[]')
+        try:
+            existing_images_to_keep = json.loads(existing_images_json) if isinstance(existing_images_json, str) else existing_images_json
+            if not isinstance(existing_images_to_keep, list):
+                existing_images_to_keep = []
+        except json.JSONDecodeError:
+            print(f"Warning: Could not parse existing_images: {existing_images_json}")
+            existing_images_to_keep = []
 
+        print(f"Existing images to keep: {existing_images_to_keep}")
+        print(f"New images to upload: {len(file_fields)}")
+
+        # Start with existing images that should be kept
+        final_image_keys = existing_images_to_keep.copy()
+
+        # Upload new images if provided
         if file_fields:
-            # Delete old images
-            delete_product_images(product_id)
-            # Upload new images
-            image_keys = upload_images_to_s3(product_id, file_fields)
-            print(f"Uploaded {len(image_keys)} new images")
+            # Calculate starting index for new images
+            # Find the max index from existing images
+            max_index = 0
+            for key in existing_images_to_keep:
+                # Extract index from key like "products/25002/3"
+                try:
+                    index = int(key.split('/')[-1])
+                    max_index = max(max_index, index)
+                except (ValueError, IndexError):
+                    pass
+
+            start_index = max_index + 1
+            new_image_keys = upload_images_to_s3(product_id, file_fields, start_index)
+            final_image_keys.extend(new_image_keys)
+            print(f"Uploaded {len(new_image_keys)} new images starting at index {start_index}")
+
+        # Delete images from S3 that are no longer in the final list
+        delete_product_images(product_id, final_image_keys)
+
+        image_keys = final_image_keys
 
         # Update product in DynamoDB
         now = datetime.now(timezone.utc).isoformat()
