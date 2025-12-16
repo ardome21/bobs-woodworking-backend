@@ -81,6 +81,24 @@ module "bw3_api" {
       lambda_name       = module.get_products_lambda.function_name
       lambda_invoke_arn = module.get_products_lambda.invoke_arn
     },
+    {
+      method            = "DELETE"
+      path              = "/products/{id}"
+      lambda_name       = module.delete_products_lambda.function_name
+      lambda_invoke_arn = module.delete_products_lambda.invoke_arn
+    },
+    {
+      method            = "DELETE"
+      path              = "/products"
+      lambda_name       = module.delete_products_lambda.function_name
+      lambda_invoke_arn = module.delete_products_lambda.invoke_arn
+    },
+    {
+      method            = "OPTIONS"
+      path              = "/products/{id}"
+      lambda_name       = module.delete_products_lambda.function_name
+      lambda_invoke_arn = module.delete_products_lambda.invoke_arn
+    },
   ]
 }
 
