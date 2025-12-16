@@ -6,8 +6,8 @@ resource "aws_apigatewayv2_api" "this" {
   cors_configuration {
     allow_origins     = ["http://localhost:4200", "https://bobs-woodworking.com", "https://bobs-woodworks.com"]
     allow_credentials = true
-    allow_methods     = ["POST", "GET", "OPTIONS", "DELETE"]
-    allow_headers     = ["content-type", "authorization"]
+    allow_methods     = ["POST", "GET", "OPTIONS", "DELETE", "PUT"]
+    allow_headers     = ["Content-Type", "Authorization"]
     max_age           = 86400
   }
 
