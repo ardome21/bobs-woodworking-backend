@@ -82,6 +82,12 @@ module "bw3_api" {
       lambda_invoke_arn = module.get_products_lambda.invoke_arn
     },
     {
+      method            = "PUT"
+      path              = "/products/{id}"
+      lambda_name       = module.update_product_lambda.function_name
+      lambda_invoke_arn = module.update_product_lambda.invoke_arn
+    },
+    {
       method            = "DELETE"
       path              = "/products/{id}"
       lambda_name       = module.delete_products_lambda.function_name

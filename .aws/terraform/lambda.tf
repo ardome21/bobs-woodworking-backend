@@ -61,3 +61,11 @@ module "delete_products_lambda" {
   existing_iam_role_arn = var.existing_iam_role_arn
   lambda_layers         = [ aws_lambda_layer_version.utils_layer.arn ]
 }
+
+module "update_product_lambda" {
+  source               = "./impl/lambda"
+  lambda_name          = "bw3-update-product-dev"
+  source_file          = "../../lambdas/products/UpdateProduct/main.py"
+  existing_iam_role_arn = var.existing_iam_role_arn
+  lambda_layers         = [ aws_lambda_layer_version.utils_layer.arn ]
+}
