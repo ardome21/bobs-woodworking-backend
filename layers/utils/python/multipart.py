@@ -24,11 +24,28 @@ def parse_multipart_formdata(body_bytes, content_type):
     # Separate text fields and files
     text_fields = {}
     file_fields = {}
-    
+
     for field_name, field_values in fields.items():
-        if field_values:
+        if not field_values:
+            continue
+
+        # Check if this field has multiple values (e.g., multiple images)
+        if len(field_values) > 1:
+            # Handle multiple files with the same field name
+            for idx, value in enumerate(field_values):
+                if isinstance(value, bytes):
+                    try:
+                        decoded_value = value.decode('utf-8')
+                        # For text fields with multiple values, keep the last one
+                        text_fields[field_name] = decoded_value
+                    except UnicodeDecodeError:
+                        # Store files with unique keys
+                        file_fields[f"{field_name}_{idx}"] = value
+                else:
+                    text_fields[field_name] = value
+        else:
+            # Single value - original logic
             value = field_values[0]
-            # Try to decode as text
             if isinstance(value, bytes):
                 try:
                     decoded_value = value.decode('utf-8')
@@ -38,5 +55,5 @@ def parse_multipart_formdata(body_bytes, content_type):
                     file_fields[field_name] = value
             else:
                 text_fields[field_name] = value
-    
+
     return text_fields, file_fields
