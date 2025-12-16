@@ -75,6 +75,12 @@ module "bw3_api" {
       lambda_name       = module.get_products_lambda.function_name
       lambda_invoke_arn = module.get_products_lambda.invoke_arn
     },
+    {
+      method            = "GET"
+      path              = "/products/{id}"
+      lambda_name       = module.get_products_lambda.function_name
+      lambda_invoke_arn = module.get_products_lambda.invoke_arn
+    },
   ]
 }
 
