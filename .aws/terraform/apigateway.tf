@@ -96,8 +96,8 @@ module "bw3_api" {
     {
       method            = "OPTIONS"
       path              = "/products/{id}"
-      lambda_name       = module.delete_products_lambda.function_name
-      lambda_invoke_arn = module.delete_products_lambda.invoke_arn
+      lambda_name       = module.get_products_lambda.function_name
+      lambda_invoke_arn = module.get_products_lambda.invoke_arn
     },
   ]
 }
