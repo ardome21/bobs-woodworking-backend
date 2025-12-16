@@ -64,13 +64,13 @@ module "bw3_api" {
       lambda_invoke_arn = module.add_product_lambda.invoke_arn
     },
     {
-      method            = "OPTIONS"
+      method            = "GET"
       path              = "/products"
-      lambda_name       = module.add_product_lambda.function_name
-      lambda_invoke_arn = module.add_product_lambda.invoke_arn
+      lambda_name       = module.get_products_lambda.function_name
+      lambda_invoke_arn = module.get_products_lambda.invoke_arn
     },
     {
-      method            = "GET"
+      method            = "OPTIONS"
       path              = "/products"
       lambda_name       = module.get_products_lambda.function_name
       lambda_invoke_arn = module.get_products_lambda.invoke_arn

@@ -97,6 +97,14 @@ def get_products(product_table):
 def lambda_handler(event, _context):
     try:
         print("Beginning Script...")
+        http_method = event.get('httpMethod') or event.get(
+            'requestContext', {}).get('http', {}).get('method')
+        if http_method == 'OPTIONS':
+            print("Handling OPTIONS preflight request")
+            return {
+                'statusCode': 200,
+                'body': json.dumps({'message': 'OK'})
+            }
         path_params = event.get('pathParameters') or {}
         product_id = path_params.get('id')
         table = dynamodb.Table(PRODUCTS_TABLE_NAME)
