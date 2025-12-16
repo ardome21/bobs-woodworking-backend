@@ -47,16 +47,20 @@ def get_product_from_id(product_table, product_id):
     :param product_id
     """
     try:
+        print(f"Getting product: {product_id}")
         response = product_table.get_item(Key={'product_id': product_id})
         raw_item = response.get('Item')
         if not raw_item:
+            print("[WARNING] Could not find a product with that ID ")
             return {
                 'statusCode': 404,
                 'body': json.dumps({
                     'message': f'Product with id {product_id} not found'
                 }),
             }
+        print("Product found")
         product = format_product(raw_item)
+        print("Product Formatted")
         return {
             'statusCode': 200,
             'body': json.dumps({
@@ -75,11 +79,12 @@ def get_products(product_table):
     :param product_table:
     """
     try:
+        print("Getting all products")
         response = product_table.scan()
         raw_items = response.get('Items', [])
-
+        print(f"Found {len(raw_items)} products")
         products = [format_product(raw_item) for raw_item in raw_items]
-
+        print(f"Formatted {len(products)} products")
         return {
             'statusCode': 200,
             'body': json.dumps({
@@ -91,17 +96,16 @@ def get_products(product_table):
 
 def lambda_handler(event, _context):
     try:
+        print("Beginning Script...")
         path_params = event.get('pathParameters') or {}
         product_id = path_params.get('id')
         table = dynamodb.Table(PRODUCTS_TABLE_NAME)
-
         if product_id:
             return get_product_from_id(table, product_id)
         return get_products(table)
 
     except Exception as e:
         print(f"Unexpected error during Get Products: {e}")
-
         return {
             'statusCode': 500,
             'body': json.dumps({
