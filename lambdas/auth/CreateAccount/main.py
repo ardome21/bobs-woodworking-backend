@@ -79,7 +79,6 @@ def send_email(user_email: str, user_first_name: str, user_last_name: str, user_
     """Send end email using SES"""
     ses = boto3.client('ses', region_name='us-east-1')
     sender_email = 'noreply@bobs-woodworks.com'
-    admin_email = 'ardome21+aws@gmail.com'
     subject = "Confirm Email for Bob's Woodworking App"
     confirmation_link = f"https://api.bobs-woodworks.com/verify-account?userid={user_id}&token={verification_token}" # TODO: Update with new api
 
@@ -96,28 +95,15 @@ def send_email(user_email: str, user_first_name: str, user_last_name: str, user_
     """
     
     try:
-        if user_email != admin_email:
-            ses.send_email(
-                Source=sender_email,
-                Destination={'ToAddresses': [admin_email]},
-                Message={
-                    'Subject': {'Data': 'Admin: ' + subject},
-                    'Body': {'Html': {'Data': body}}
-                }
-            )
-            print(f"Admin email sent to {admin_email}") 
-            return True
-        else: 
-            ses.send_email(
-                Source=sender_email,
-                Destination={'ToAddresses': [user_email]},
-                Message={
-                    'Subject': {'Data': subject},
-                    'Body': {'Html': {'Data': body}}
-                }
-            )
-            print(f"End user email sent to {user_email}")
-            return False
+        ses.send_email(
+            Source=sender_email,
+            Destination={'ToAddresses': [user_email]},
+            Message={
+                'Subject': {'Data': subject},
+                'Body': {'Html': {'Data': body}}
+            }
+        )
+        print(f"End user email sent to {user_email}")
     except Exception as e:
         print(f"Error sending end email: {str(e)}")
         raise e
@@ -205,25 +191,11 @@ def lambda_handler(event, _context):
             user_id=user_id
         )
         print(f"User created successfully: {email}")
-        send_admin_email = send_email(email, firstName, lastName, user_id, verification_token)
-        
-        if send_admin_email:
-            return {
-                'statusCode': 202,
-                'body': json.dumps({
-                    'message': 'User created successfully, Admin Email sent',
-                    'user': {
-                        'email': email,
-                        'user_id': user_id,
-                        'firstName': firstName,
-                        'lastName': lastName
-                    }
-                })
-            }
+        send_email(email, firstName, lastName, user_id, verification_token)
         return {
             'statusCode': 201,
             'body': json.dumps({
-                'message': 'User created successfully: User Email Sen',
+                'message': 'User created successfully: User Email Sent',
                 'user': {
                     'email': email,
                     'user_id': user_id,
