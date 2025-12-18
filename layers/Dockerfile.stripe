@@ -1,0 +1,22 @@
+FROM python:3.11-slim
+
+# Create the proper layer structure
+WORKDIR /opt
+RUN mkdir -p python
+
+# Install zip utility
+RUN apt-get update && apt-get install -y zip && rm -rf /var/lib/apt/lists/*
+
+# Install Stripe Python SDK into the python directory
+RUN pip install stripe -t python/ && \
+    find python/ -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true && \
+    find python/ -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true && \
+    find python/ -name "*.pyc" -delete && \
+    pip cache purge
+
+# Create the zip file with correct structure
+RUN zip -r /stripe_layer.zip python/ -x "*.pyc" "*/__pycache__/*"
+
+# Use volume mount to copy out the zip file
+VOLUME /output
+CMD ["cp", "/stripe_layer.zip", "/output/"]

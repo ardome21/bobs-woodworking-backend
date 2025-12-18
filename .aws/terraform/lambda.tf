@@ -69,3 +69,58 @@ module "update_product_lambda" {
   existing_iam_role_arn = var.existing_iam_role_arn
   lambda_layers         = [ aws_lambda_layer_version.utils_layer.arn ]
 }
+
+# Payment Lambdas
+module "create_payment_intent_lambda" {
+  source                = "./impl/lambda"
+  lambda_name           = "bw3-create-payment-intent-dev"
+  source_file           = "../../lambdas/payment/CreatePaymentIntent/main.py"
+  existing_iam_role_arn = var.existing_iam_role_arn
+  lambda_layers         = [
+    aws_lambda_layer_version.stripe_layer.arn
+  ]
+}
+
+module "payment_options_handler_lambda" {
+  source                = "./impl/lambda"
+  lambda_name           = "bw3-payment-options-handler-dev"
+  source_file           = "../../lambdas/payment/OptionsHandler/main.py"
+  existing_iam_role_arn = var.existing_iam_role_arn
+  lambda_layers         = []
+}
+
+# Order Lambdas
+module "create_order_lambda" {
+  source                = "./impl/lambda"
+  lambda_name           = "bw3-create-order-dev"
+  source_file           = "../../lambdas/orders/CreateOrder/main.py"
+  existing_iam_role_arn = var.existing_iam_role_arn
+  lambda_layers         = [
+    aws_lambda_layer_version.utils_layer.arn,
+    aws_lambda_layer_version.stripe_layer.arn
+  ]
+}
+
+module "get_user_orders_lambda" {
+  source                = "./impl/lambda"
+  lambda_name           = "bw3-get-user-orders-dev"
+  source_file           = "../../lambdas/orders/GetUserOrders/main.py"
+  existing_iam_role_arn = var.existing_iam_role_arn
+  lambda_layers         = [ aws_lambda_layer_version.utils_layer.arn ]
+}
+
+module "get_order_by_id_lambda" {
+  source                = "./impl/lambda"
+  lambda_name           = "bw3-get-order-by-id-dev"
+  source_file           = "../../lambdas/orders/GetOrderById/main.py"
+  existing_iam_role_arn = var.existing_iam_role_arn
+  lambda_layers         = [ aws_lambda_layer_version.utils_layer.arn ]
+}
+
+module "orders_options_handler_lambda" {
+  source                = "./impl/lambda"
+  lambda_name           = "bw3-orders-options-handler-dev"
+  source_file           = "../../lambdas/orders/OptionsHandler/main.py"
+  existing_iam_role_arn = var.existing_iam_role_arn
+  lambda_layers         = []
+}

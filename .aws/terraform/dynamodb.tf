@@ -19,3 +19,12 @@ module "bw3_products_table" {
   partition_key = "product_id"
   environment   = "dev"
 }
+
+module "bw3_orders_table" {
+  source              = "./impl/dynamodb"
+  table_name          = "bw3-orders-dev"
+  partition_key       = "user_id"
+  sort_key            = "order_id"
+  secondary_index_key = "order_status"
+  environment         = "dev"
+}

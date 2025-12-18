@@ -105,6 +105,50 @@ module "bw3_api" {
       lambda_name       = module.get_products_lambda.function_name
       lambda_invoke_arn = module.get_products_lambda.invoke_arn
     },
+    # Payment routes
+    {
+      method            = "POST"
+      path              = "/payment/create-intent"
+      lambda_name       = module.create_payment_intent_lambda.function_name
+      lambda_invoke_arn = module.create_payment_intent_lambda.invoke_arn
+    },
+    {
+      method            = "OPTIONS"
+      path              = "/payment/create-intent"
+      lambda_name       = module.payment_options_handler_lambda.function_name
+      lambda_invoke_arn = module.payment_options_handler_lambda.invoke_arn
+    },
+    # Order routes
+    {
+      method            = "POST"
+      path              = "/orders"
+      lambda_name       = module.create_order_lambda.function_name
+      lambda_invoke_arn = module.create_order_lambda.invoke_arn
+    },
+    {
+      method            = "OPTIONS"
+      path              = "/orders"
+      lambda_name       = module.orders_options_handler_lambda.function_name
+      lambda_invoke_arn = module.orders_options_handler_lambda.invoke_arn
+    },
+    {
+      method            = "GET"
+      path              = "/orders"
+      lambda_name       = module.get_user_orders_lambda.function_name
+      lambda_invoke_arn = module.get_user_orders_lambda.invoke_arn
+    },
+    {
+      method            = "GET"
+      path              = "/orders/{order_id}"
+      lambda_name       = module.get_order_by_id_lambda.function_name
+      lambda_invoke_arn = module.get_order_by_id_lambda.invoke_arn
+    },
+    {
+      method            = "OPTIONS"
+      path              = "/orders/{order_id}"
+      lambda_name       = module.orders_options_handler_lambda.function_name
+      lambda_invoke_arn = module.orders_options_handler_lambda.invoke_arn
+    },
   ]
 }
 
