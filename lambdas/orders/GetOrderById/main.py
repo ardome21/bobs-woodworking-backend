@@ -11,7 +11,7 @@ dynamodb = boto3.resource('dynamodb')
 ORDERS_TABLE_NAME = 'bw3-orders-dev'
 
 
-@require_role('user')
+@require_role('user', 'admin')
 def lambda_handler(event, _context):
     """Main Lambda handler for getting order by ID"""
     try:
