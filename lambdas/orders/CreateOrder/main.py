@@ -233,7 +233,7 @@ def send_order_confirmation_email(user_email, user_name, order_id, total_amount,
         # Don't raise - we don't want to fail the order if email fails
 
 
-@require_role('user')
+@require_role('user', 'admin')
 def lambda_handler(event, _context):
     """Main Lambda handler for creating orders"""
     try:
