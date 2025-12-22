@@ -30,6 +30,7 @@ def format_product(raw_item: Dict[str, Any]) -> Dict[str, Any]:
             'title': item.get('title'),
             'description': item.get('description'),
             'price': item.get('price'),
+            'quantity': item.get('quantity', 1),
             'images': image_urls,
             'created_at': item.get('created_at'),
             'updated_at': item.get('updated_at'),

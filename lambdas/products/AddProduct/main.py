@@ -52,31 +52,33 @@ def upload_images_to_s3(product_id, file_fields):
     
     return image_keys
 
-def save_product_to_dynamodb(product_id, title, description, price, image_keys):
+def save_product_to_dynamodb(product_id, title, description, price, image_keys, quantity):
     """
     Save product to DynamoDB.
-    
+
     Args:
         product_id: Unique product ID
         title: Product title
         description: Product description
         price: Product price
         image_keys: List of S3 object keys for images
+        quantity: Product quantity
     """
     table = dynamodb.Table(PRODUCTS_TABLE_NAME)
     now = datetime.now(timezone.utc).isoformat()
     price = Decimal(price)
-    
+
     item = {
         'product_id': product_id,
         'title': title,
         'description': description,
         'price': price,
         'images': image_keys,
+        'quantity': int(quantity),
         'created_at': now,
         'updated_at': now
     }
-    
+
     try:
         table.put_item(Item=item)
         print(f"Saved product to DynamoDB: {product_id}")
@@ -142,11 +144,13 @@ def add_product(event):
         title = text_fields.get('title')
         description = text_fields.get('description')
         price = text_fields.get('price')
-        
+        quantity = text_fields.get('quantity', '1')
+
         print(f"Title: {title}")
         print(f"Description: {description}")
         print(f"Price: {price}")
-        
+        print(f"Quantity: {quantity}")
+
         # Validate required fields
         if not title or not description or not price:
             return {
@@ -165,9 +169,9 @@ def add_product(event):
         if file_fields:
             image_keys = upload_images_to_s3(product_id, file_fields)
             print(f"Uploaded {len(image_keys)} images")
-        
+
         # Save product to DynamoDB
-        save_product_to_dynamodb(product_id, title, description, price, image_keys)
+        save_product_to_dynamodb(product_id, title, description, price, image_keys, quantity)
         
         user = event.get('user')
         print(f"User: {user}")
@@ -182,6 +186,7 @@ def add_product(event):
                     'title': title,
                     'description': description,
                     'price': price,
+                    'quantity': int(quantity),
                     'images': image_keys
                 }
             })

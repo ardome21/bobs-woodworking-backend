@@ -130,10 +130,12 @@ def update_product(event: Dict[str, Any]) -> Dict[str, Any]:
         title = text_fields.get('title', current_product.get('title'))
         description = text_fields.get('description', current_product.get('description'))
         price = text_fields.get('price', str(current_product.get('price')))
+        quantity = text_fields.get('quantity', str(current_product.get('quantity', 1)))
 
         print(f"Title: {title}")
         print(f"Description: {description}")
         print(f"Price: {price}")
+        print(f"Quantity: {quantity}")
 
         # Handle images
         # Parse existing_images field (JSON array of S3 keys to keep)
@@ -183,6 +185,7 @@ def update_product(event: Dict[str, Any]) -> Dict[str, Any]:
             'title': title,
             'description': description,
             'price': Decimal(str(price)),
+            'quantity': int(quantity),
             'images': image_keys,
             'created_at': current_product.get('created_at', now),
             'updated_at': now
@@ -201,6 +204,7 @@ def update_product(event: Dict[str, Any]) -> Dict[str, Any]:
                     'title': title,
                     'description': description,
                     'price': str(price),
+                    'quantity': int(quantity),
                     'images': image_keys
                 }
             })
