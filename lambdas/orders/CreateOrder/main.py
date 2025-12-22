@@ -281,15 +281,19 @@ def lambda_handler(event, _context):
                 'body': json.dumps({'error': 'Items must be a non-empty array'})
             }
 
-        # Validate shipping address
-        address_fields = ['name', 'street', 'city', 'state', 'zip', 'country']
-        missing_address_fields = [f for f in address_fields if f not in shipping_address]
+        # Validate shipping address (name is optional if user is logged in)
+        required_address_fields = ['street', 'city', 'state', 'zip', 'country']
+        missing_address_fields = [f for f in required_address_fields if f not in shipping_address]
 
         if missing_address_fields:
             return {
                 'statusCode': 400,
                 'body': json.dumps({'error': f'Missing shipping address fields: {", ".join(missing_address_fields)}'})
             }
+
+        # If name is not provided in shipping address, use user's name from token
+        if 'name' not in shipping_address or not shipping_address['name']:
+            shipping_address['name'] = user_name
 
         # 1. Verify payment intent with Stripe
         payment_intent = verify_payment_intent(payment_intent_id)
