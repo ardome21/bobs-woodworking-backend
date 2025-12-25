@@ -147,7 +147,7 @@ module "promote_user_to_admin_lambda" {
   lambda_name           = "bw3-promote-user-to-admin-dev"
   source_file           = "../../lambdas/users/PromoteUserToAdmin/main.py"
   existing_iam_role_arn = var.existing_iam_role_arn
-  lambda_layers         = []
+  lambda_layers         = [ aws_lambda_layer_version.utils_layer.arn ]
 }
 
 module "request_admin_elevation_lambda" {
@@ -155,7 +155,7 @@ module "request_admin_elevation_lambda" {
   lambda_name           = "bw3-request-admin-elevation-dev"
   source_file           = "../../lambdas/users/RequestAdminElevation/main.py"
   existing_iam_role_arn = var.existing_iam_role_arn
-  lambda_layers         = []
+  lambda_layers         = [ aws_lambda_layer_version.utils_layer.arn ]
 }
 
 module "confirm_admin_elevation_lambda" {
@@ -163,5 +163,5 @@ module "confirm_admin_elevation_lambda" {
   lambda_name           = "bw3-confirm-admin-elevation-dev"
   source_file           = "../../lambdas/users/ConfirmAdminElevation/main.py"
   existing_iam_role_arn = var.existing_iam_role_arn
-  lambda_layers         = []
+  lambda_layers         = [ aws_lambda_layer_version.utils_layer.arn ]
 }
