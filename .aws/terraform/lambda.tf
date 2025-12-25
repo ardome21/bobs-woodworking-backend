@@ -141,3 +141,27 @@ module "orders_options_handler_lambda" {
   existing_iam_role_arn = var.existing_iam_role_arn
   lambda_layers         = []
 }
+
+module "promote_user_to_admin_lambda" {
+  source                = "./impl/lambda"
+  lambda_name           = "bw3-promote-user-to-admin-dev"
+  source_file           = "../../lambdas/users/PromoteUserToAdmin/main.py"
+  existing_iam_role_arn = var.existing_iam_role_arn
+  lambda_layers         = []
+}
+
+module "request_admin_elevation_lambda" {
+  source                = "./impl/lambda"
+  lambda_name           = "bw3-request-admin-elevation-dev"
+  source_file           = "../../lambdas/users/RequestAdminElevation/main.py"
+  existing_iam_role_arn = var.existing_iam_role_arn
+  lambda_layers         = []
+}
+
+module "confirm_admin_elevation_lambda" {
+  source                = "./impl/lambda"
+  lambda_name           = "bw3-confirm-admin-elevation-dev"
+  source_file           = "../../lambdas/users/ConfirmAdminElevation/main.py"
+  existing_iam_role_arn = var.existing_iam_role_arn
+  lambda_layers         = []
+}
