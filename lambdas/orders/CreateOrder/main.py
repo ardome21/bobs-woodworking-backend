@@ -163,8 +163,7 @@ def deduct_inventory(items):
                 UpdateExpression='SET quantity = quantity - :qty, updated_at = :timestamp',
                 ExpressionAttributeValues={
                     ':qty': quantity,
-                    ':timestamp': datetime.now(timezone.utc).isoformat(),
-                    ':zero': 0
+                    ':timestamp': datetime.now(timezone.utc).isoformat()
                 },
                 ConditionExpression='quantity >= :qty',
                 ReturnValues='UPDATED_NEW'
