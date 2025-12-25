@@ -52,6 +52,18 @@ module "bw3_api" {
       lambda_invoke_arn = module.create_account_lambda.invoke_arn
     },
     {
+      method            = "POST"
+      path              = "/auth/guest-token"
+      lambda_name       = module.create_guest_token_lambda.function_name
+      lambda_invoke_arn = module.create_guest_token_lambda.invoke_arn
+    },
+    {
+      method            = "OPTIONS"
+      path              = "/auth/guest-token"
+      lambda_name       = module.create_guest_token_lambda.function_name
+      lambda_invoke_arn = module.create_guest_token_lambda.invoke_arn
+    },
+    {
       method            = "GET"
       path              = "/auth-and-validate"
       lambda_name       = module.auth_and_validate_lambda.function_name
