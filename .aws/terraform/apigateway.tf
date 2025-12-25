@@ -188,7 +188,7 @@ module "bw3_api" {
     },
     {
       method            = "POST"
-      path              = "confirm-admin-elevation"
+      path              = "/confirm-admin-elevation"
       lambda_name       = module.confirm_admin_elevation_lambda.function_name
       lambda_invoke_arn = module.confirm_admin_elevation_lambda.invoke_arn
     },
