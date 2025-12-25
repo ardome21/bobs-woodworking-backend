@@ -192,6 +192,18 @@ module "bw3_api" {
       lambda_name       = module.confirm_admin_elevation_lambda.function_name
       lambda_invoke_arn = module.confirm_admin_elevation_lambda.invoke_arn
     },
+    {
+      method            = "OPTIONS"
+      path              = "/request-admin-elevation"
+      lambda_name       = module.orders_options_handler_lambda.function_name
+      lambda_invoke_arn = module.orders_options_handler_lambda.invoke_arn
+    },
+    {
+      method            = "OPTIONS"
+      path              = "/promote-user-to-admin/{user_id}"
+      lambda_name       = module.orders_options_handler_lambda.function_name
+      lambda_invoke_arn = module.orders_options_handler_lambda.invoke_arn
+    },
   ]
 }
 
