@@ -187,7 +187,7 @@ module "bw3_api" {
       lambda_invoke_arn = module.promote_user_to_admin_lambda.invoke_arn
     },
     {
-      method            = "POST"
+      method            = "GET"
       path              = "/confirm-admin-elevation"
       lambda_name       = module.confirm_admin_elevation_lambda.function_name
       lambda_invoke_arn = module.confirm_admin_elevation_lambda.invoke_arn
