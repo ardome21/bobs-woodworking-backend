@@ -97,6 +97,15 @@ module "payment_options_handler_lambda" {
   lambda_layers         = []
 }
 
+# Cart Lambdas
+module "validate_cart_lambda" {
+  source                = "./impl/lambda"
+  lambda_name           = "bw3-validate-cart-dev"
+  source_file           = "../../lambdas/cart/ValidateCart/main.py"
+  existing_iam_role_arn = var.existing_iam_role_arn
+  lambda_layers         = [ aws_lambda_layer_version.utils_layer.arn ]
+}
+
 # Order Lambdas
 module "create_order_lambda" {
   source                = "./impl/lambda"

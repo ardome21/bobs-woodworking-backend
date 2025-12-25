@@ -130,6 +130,19 @@ module "bw3_api" {
       lambda_name       = module.payment_options_handler_lambda.function_name
       lambda_invoke_arn = module.payment_options_handler_lambda.invoke_arn
     },
+    # Cart routes
+    {
+      method            = "POST"
+      path              = "/cart/validate"
+      lambda_name       = module.validate_cart_lambda.function_name
+      lambda_invoke_arn = module.validate_cart_lambda.invoke_arn
+    },
+    {
+      method            = "OPTIONS"
+      path              = "/cart/validate"
+      lambda_name       = module.validate_cart_lambda.function_name
+      lambda_invoke_arn = module.validate_cart_lambda.invoke_arn
+    },
     # Order routes
     {
       method            = "POST"
