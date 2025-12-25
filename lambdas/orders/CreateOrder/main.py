@@ -109,6 +109,81 @@ def get_product_details(product_ids):
     return products
 
 
+def validate_inventory(items, products):
+    """
+    Validate that sufficient inventory is available for all items.
+
+    Args:
+        items: List of {product_id, quantity}
+        products: Dict of product details
+
+    Raises:
+        ValueError: If insufficient inventory for any product
+    """
+    for item in items:
+        product_id = str(item['product_id'])
+        requested_quantity = int(item['quantity'])
+
+        if product_id not in products:
+            raise ValueError(f"Product {product_id} not found")
+
+        product = products[product_id]
+        available_quantity = int(product.get('quantity', 0))
+
+        if available_quantity < requested_quantity:
+            product_name = product.get('title', product_id)
+            raise ValueError(
+                f"Insufficient inventory for {product_name}. "
+                f"Requested: {requested_quantity}, Available: {available_quantity}"
+            )
+
+    print("Inventory validation passed for all items")
+
+
+def deduct_inventory(items):
+    """
+    Deduct ordered quantities from product inventory in DynamoDB.
+
+    Args:
+        items: List of {product_id, quantity}
+
+    Raises:
+        Exception: If inventory update fails
+    """
+    products_table = dynamodb.Table(PRODUCTS_TABLE_NAME)
+
+    for item in items:
+        product_id = str(item['product_id'])
+        quantity = int(item['quantity'])
+
+        try:
+            # Use atomic update to deduct quantity
+            response = products_table.update_item(
+                Key={'product_id': product_id},
+                UpdateExpression='SET quantity = quantity - :qty, updated_at = :timestamp',
+                ExpressionAttributeValues={
+                    ':qty': quantity,
+                    ':timestamp': datetime.now(timezone.utc).isoformat(),
+                    ':zero': 0
+                },
+                ConditionExpression='quantity >= :qty',
+                ReturnValues='UPDATED_NEW'
+            )
+
+            new_quantity = response['Attributes']['quantity']
+            print(f"Deducted {quantity} from product {product_id}. New quantity: {new_quantity}")
+
+        except dynamodb.meta.client.exceptions.ConditionalCheckFailedException:
+            # This should not happen if validate_inventory was called first
+            raise RuntimeError(
+                f"Concurrent inventory issue: Insufficient stock for product {product_id}. "
+                "Please try again."
+            )
+        except Exception as e:
+            print(f"Error updating inventory for product {product_id}: {e}")
+            raise RuntimeError(f"Failed to update inventory for product {product_id}")
+
+
 def calculate_order_total(items, products):
     """
     Calculate order total and enrich items with product details.
@@ -150,7 +225,6 @@ def calculate_order_total(items, products):
 def save_order_to_dynamodb(order_data):
     """Save order to DynamoDB"""
     orders_table = dynamodb.Table(ORDERS_TABLE_NAME)
-
     try:
         orders_table.put_item(Item=order_data)
         print(f"Order {order_data['order_id']} saved successfully")
@@ -317,14 +391,17 @@ def lambda_handler(event, _context):
         product_ids = [item['product_id'] for item in items]
         products = get_product_details(product_ids)
 
-        # 3. Calculate total and enrich items
+        # 3. Validate inventory availability
+        validate_inventory(items, products)
+
+        # 4. Calculate total and enrich items
         enriched_items, total_amount = calculate_order_total(items, products)
 
-        # 4. Generate order ID
+        # 5. Generate order ID
         order_id = generate_order_id()
         timestamp = datetime.now(timezone.utc).isoformat()
 
-        # 5. Create order data
+        # 6. Create order data
         order_data = {
             'user_id': user_id,
             'order_id': order_id,
@@ -338,10 +415,13 @@ def lambda_handler(event, _context):
             'paid_at': timestamp
         }
 
-        # 6. Save order to DynamoDB
+        # 7. Save order to DynamoDB
         save_order_to_dynamodb(order_data)
 
-        # 7. Send confirmation email
+        # 8. Deduct inventory quantities
+        deduct_inventory(items)
+
+        # 9. Send confirmation email
         send_order_confirmation_email(
             user_email=user_email,
             user_name=user_name,
@@ -351,7 +431,7 @@ def lambda_handler(event, _context):
             shipping_address=shipping_address
         )
 
-        # 8. Return success response
+        # 10. Return success response
         return {
             'statusCode': 201,
             'body': json.dumps({
