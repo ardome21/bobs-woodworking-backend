@@ -307,7 +307,7 @@ def send_order_confirmation_email(user_email, user_name, order_id, total_amount,
         # Don't raise - we don't want to fail the order if email fails
 
 
-@require_role('user', 'admin')
+@require_role('user', 'admin', 'guest')
 def lambda_handler(event, _context):
     """Main Lambda handler for creating orders"""
     try:
@@ -330,9 +330,10 @@ def lambda_handler(event, _context):
         user = event.get('user', {})
         user_id = user.get('user_id')
         user_email = user.get('email')
+        user_role = user.get('role')
         user_name = f"{user.get('first_name', '')} {user.get('last_name', '')}".strip() or user_email
 
-        print(f"Creating order for user: {user_id} ({user_email})")
+        print(f"Creating order for {user_role}: {user_id} ({user_email})")
 
         # Validate required fields
         required_fields = ['items', 'shipping_address', 'payment_intent_id']
