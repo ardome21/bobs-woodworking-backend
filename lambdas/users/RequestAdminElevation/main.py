@@ -17,7 +17,7 @@ ses = boto3.client('ses', region_name='us-east-1')
 USER_TABLE = os.environ.get('USER_TABLE', 'bw3-users-dev')
 userTable = dynamodb.Table(USER_TABLE)
 
-ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@bobs-woodworks.com')
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'ardome21@gmail.com')
 SENDER_EMAIL = 'noreply@bobs-woodworks.com'
 
 
